@@ -1,0 +1,236 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]: Clothify
+      - list [ref=e5]:
+        - listitem [ref=e6]:
+          - link "Home" [ref=e7] [cursor=pointer]:
+            - /url: "#home"
+        - listitem [ref=e8]:
+          - link "Collection" [ref=e9] [cursor=pointer]:
+            - /url: "#collection"
+        - listitem [ref=e10]:
+          - link "About" [ref=e11] [cursor=pointer]:
+            - /url: "#about"
+        - listitem [ref=e12]:
+          - link "Contact" [ref=e13] [cursor=pointer]:
+            - /url: "#contact"
+      - generic [ref=e14]:
+        - generic [ref=e15]:
+          - combobox [ref=e16] [cursor=pointer]:
+            - option "English" [selected]
+            - option "Français"
+            - option "العربية"
+          - button " Wishlist" [ref=e17]:
+            - generic [ref=e18] [cursor=pointer]: 
+            - text: Wishlist
+        - generic [ref=e19] [cursor=pointer]: 
+        - generic [ref=e21] [cursor=pointer]: 
+        - generic [ref=e22]:
+          - generic [ref=e23] [cursor=pointer]: 
+          - generic [ref=e24]: "0"
+  - option "English" [selected]
+  - option "Français"
+  - option "العربية"
+  - banner [ref=e29]:
+    - generic [ref=e31]:
+      - heading "NEW ARRIVAL" [level=1] [ref=e32]
+      - paragraph [ref=e33]: Discover our latest collection of modern apparel designed for comfort and style.
+      - link "Shop Now" [ref=e34] [cursor=pointer]:
+        - /url: "#collection"
+  - generic [ref=e37]:
+    - img "About Clothify" [ref=e39]
+    - generic [ref=e40]:
+      - heading "Our Story" [level=2] [ref=e41]
+      - paragraph [ref=e42]: Founded in 2026, Clothify was born out of a passion for minimalist design and sustainable fashion. We believe that what you wear should be a reflection of your values – quality, comfort, and timeless style.
+      - paragraph [ref=e43]: Our mission is to provide premium apparel that bridges the gap between high-end luxury and everyday versatility. Every piece in our collection is meticulously crafted with attention to detail and sourced from ethical manufacturers.
+      - generic [ref=e44]:
+        - generic [ref=e45]:
+          - heading "10k+" [level=3] [ref=e46]
+          - paragraph [ref=e47]: Happy Customers
+        - generic [ref=e48]:
+          - heading "500+" [level=3] [ref=e49]
+          - paragraph [ref=e50]: Modern Designs
+        - generic [ref=e51]:
+          - heading "100%" [level=3] [ref=e52]
+          - paragraph [ref=e53]: Sustainable
+  - generic [ref=e55]:
+    - heading "Our Collection" [level=2] [ref=e56]
+    - combobox [ref=e58]:
+      - 'option "Sort by: Featured" [selected]'
+      - 'option "Price: Low to High"'
+      - 'option "Price: High to Low"'
+      - 'option "Name: A to Z"'
+      - 'option "Name: Z to A"'
+    - generic [ref=e59]:
+      - generic [ref=e60]:
+        - img "Premium Tee" [ref=e61]
+        - generic [ref=e62]:
+          - heading "Premium Tee" [level=3] [ref=e63]
+          - paragraph [ref=e64]: 290 MAD
+          - button "Add to Cart" [ref=e65] [cursor=pointer]
+      - generic [ref=e66]:
+        - img "Denim Jacket" [ref=e67]
+        - generic [ref=e68]:
+          - heading "Denim Jacket" [level=3] [ref=e69]
+          - paragraph [ref=e70]: 899 MAD
+          - button "Add to Cart" [ref=e71] [cursor=pointer]
+      - generic [ref=e72]:
+        - img "Summer Dress" [ref=e73]
+        - generic [ref=e74]:
+          - heading "Summer Dress" [level=3] [ref=e75]
+          - paragraph [ref=e76]: 499 MAD
+          - button "Add to Cart" [ref=e77] [cursor=pointer]
+      - generic [ref=e78]:
+        - img "Canvas Sneakers" [ref=e79]
+        - generic [ref=e80]:
+          - heading "Canvas Sneakers" [level=3] [ref=e81]
+          - paragraph [ref=e82]: 599 MAD
+          - button "Add to Cart" [ref=e83] [cursor=pointer]
+      - generic [ref=e84]:
+        - img "Linen Shirt" [ref=e85]
+        - generic [ref=e86]:
+          - heading "Linen Shirt" [level=3] [ref=e87]
+          - paragraph [ref=e88]: 390 MAD
+          - button "Add to Cart" [ref=e89] [cursor=pointer]
+      - generic [ref=e90]:
+        - img "Chino Pants" [ref=e91]
+        - generic [ref=e92]:
+          - heading "Chino Pants" [level=3] [ref=e93]
+          - paragraph [ref=e94]: 450 MAD
+          - button "Add to Cart" [ref=e95] [cursor=pointer]
+      - generic [ref=e96]:
+        - img "Beanie Hat" [ref=e97]
+        - generic [ref=e98]:
+          - heading "Beanie Hat" [level=3] [ref=e99]
+          - paragraph [ref=e100]: 190 MAD
+          - button "Add to Cart" [ref=e101] [cursor=pointer]
+      - generic [ref=e102]:
+        - img "Leather Belt" [ref=e103]
+        - generic [ref=e104]:
+          - heading "Leather Belt" [level=3] [ref=e105]
+          - paragraph [ref=e106]: 340 MAD
+          - button "Add to Cart" [ref=e107] [cursor=pointer]
+      - generic [ref=e108]:
+        - img "Urban Hoodie" [ref=e109]
+        - generic [ref=e110]:
+          - heading "Urban Hoodie" [level=3] [ref=e111]
+          - paragraph [ref=e112]: 540 MAD
+          - button "Add to Cart" [ref=e113] [cursor=pointer]
+      - generic [ref=e114]:
+        - img "Floral Skirt" [ref=e115]
+        - generic [ref=e116]:
+          - heading "Floral Skirt" [level=3] [ref=e117]
+          - paragraph [ref=e118]: 350 MAD
+          - button "Add to Cart" [ref=e119] [cursor=pointer]
+      - generic [ref=e120]:
+        - img "Classic Polo" [ref=e121]
+        - generic [ref=e122]:
+          - heading "Classic Polo" [level=3] [ref=e123]
+          - paragraph [ref=e124]: 320 MAD
+          - button "Add to Cart" [ref=e125] [cursor=pointer]
+      - generic [ref=e126]:
+        - img "Leather Boots" [ref=e127]
+        - generic [ref=e128]:
+          - heading "Leather Boots" [level=3] [ref=e129]
+          - paragraph [ref=e130]: 1200 MAD
+          - button "Add to Cart" [ref=e131] [cursor=pointer]
+      - generic [ref=e132]:
+        - img "Silk Scarf" [ref=e133]
+        - generic [ref=e134]:
+          - heading "Silk Scarf" [level=3] [ref=e135]
+          - paragraph [ref=e136]: 250 MAD
+          - button "Add to Cart" [ref=e137] [cursor=pointer]
+      - generic [ref=e138]:
+        - img "Slim Fit Jeans" [ref=e139]
+        - generic [ref=e140]:
+          - heading "Slim Fit Jeans" [level=3] [ref=e141]
+          - paragraph [ref=e142]: 650 MAD
+          - button "Add to Cart" [ref=e143] [cursor=pointer]
+      - generic [ref=e144]:
+        - img "Wool Overcoat" [ref=e145]
+        - generic [ref=e146]:
+          - heading "Wool Overcoat" [level=3] [ref=e147]
+          - paragraph [ref=e148]: 1490 MAD
+          - button "Add to Cart" [ref=e149] [cursor=pointer]
+      - generic [ref=e150]:
+        - img "Wrist Watch" [ref=e151]
+        - generic [ref=e152]:
+          - heading "Wrist Watch" [level=3] [ref=e153]
+          - paragraph [ref=e154]: 850 MAD
+          - button "Add to Cart" [ref=e155] [cursor=pointer]
+      - generic [ref=e156]:
+        - img "Suede Loafers" [ref=e157]
+        - generic [ref=e158]:
+          - heading "Suede Loafers" [level=3] [ref=e159]
+          - paragraph [ref=e160]: 950 MAD
+          - button "Add to Cart" [ref=e161] [cursor=pointer]
+      - generic [ref=e162]:
+        - img "Aviator Sunglasses" [ref=e163]
+        - generic [ref=e164]:
+          - heading "Aviator Sunglasses" [level=3] [ref=e165]
+          - paragraph [ref=e166]: 450 MAD
+          - button "Add to Cart" [ref=e167] [cursor=pointer]
+      - generic [ref=e168]:
+        - img "V-Neck Sweater" [ref=e169]
+        - generic [ref=e170]:
+          - heading "V-Neck Sweater" [level=3] [ref=e171]
+          - paragraph [ref=e172]: 590 MAD
+          - button "Add to Cart" [ref=e173] [cursor=pointer]
+      - generic [ref=e174]:
+        - img "Cargo Pants" [ref=e175]
+        - generic [ref=e176]:
+          - heading "Cargo Pants" [level=3] [ref=e177]
+          - paragraph [ref=e178]: 680 MAD
+          - button "Add to Cart" [ref=e179] [cursor=pointer]
+  - contentinfo [ref=e180]:
+    - generic [ref=e181]:
+      - generic [ref=e182]:
+        - generic [ref=e183]:
+          - heading "Clothify" [level=3] [ref=e184]
+          - paragraph [ref=e185]: Elevating your daily style with premium quality apparel.
+        - generic [ref=e186]:
+          - heading "Newsletter" [level=3] [ref=e187]
+          - paragraph [ref=e188]: Subscribe for exclusive deals and new arrivals
+          - generic [ref=e189]:
+            - textbox "Your email address" [ref=e190]
+            - button "Subscribe" [ref=e191] [cursor=pointer]
+        - generic [ref=e192]:
+          - heading "Follow Us" [level=3] [ref=e193]
+          - generic [ref=e194]:
+            - link "Facebook" [ref=e195] [cursor=pointer]:
+              - /url: "#"
+              - generic [ref=e196]: 
+            - link "Instagram" [ref=e197] [cursor=pointer]:
+              - /url: "#"
+              - generic [ref=e198]: 
+            - link "Twitter" [ref=e199] [cursor=pointer]:
+              - /url: "#"
+              - generic [ref=e200]: 
+      - paragraph [ref=e201]: © 2026 Clothify. All rights reserved.
+  - generic [ref=e202]:
+    - generic [ref=e203]:
+      - textbox "Search for products..." [ref=e204]
+      - generic [ref=e205] [cursor=pointer]: 
+    - generic [ref=e207]:
+      - heading "Suggested Categories" [level=4] [ref=e208]
+      - generic [ref=e209]:
+        - generic [ref=e210] [cursor=pointer]: Tops
+        - generic [ref=e211] [cursor=pointer]: Outerwear
+        - generic [ref=e212] [cursor=pointer]: Dresses
+        - generic [ref=e213] [cursor=pointer]: Footwear
+        - generic [ref=e214] [cursor=pointer]: Accessories
+  - generic [ref=e216]:
+    - generic [ref=e217]:
+      - heading "Your Cart" [level=3] [ref=e218]
+      - generic [ref=e219] [cursor=pointer]: 
+    - paragraph [ref=e221]: Your cart is empty
+    - generic [ref=e222]:
+      - generic [ref=e223]:
+        - generic [ref=e224]: "Total:"
+        - generic [ref=e225]: 0.00 MAD
+      - button "Checkout" [ref=e226] [cursor=pointer]
+  - text:  
+  - generic [ref=e228]: 
+  - button "Back to top" [ref=e229]:
+    - generic [ref=e230]: 

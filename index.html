@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clothify | Modern Clothes Shop</title>
+    <meta name="description" content="Discover premium quality apparel at Clothify. Shop the latest collection of modern clothing designed for comfort and timeless style.">
+    <meta name="keywords" content="clothing, fashion, apparel, modern clothes, sustainable fashion, premium wear">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="Clothify | Modern Clothes Shop">
+    <meta property="og:description" content="Discover premium quality apparel at Clothify. Shop the latest collection of modern clothing.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://clothify.com">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1507553532144-b9df5e38c8d1?auto=format&fit=crop&q=80&w=1200">
+    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👕</text></svg>">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-XXXXXXXXXX');</script>
+    <!-- 🔴 Replace G-XXXXXXXXXX with your real GA4 measurement ID from https://analytics.google.com -->
+</head>
+<body>
+    <!-- Cookie Consent Banner -->
+    <div id="cookie-consent" class="cookie-consent">
+        <p>We use cookies to enhance your experience. By continuing, you agree to our <a href="#">Privacy Policy</a>.</p>
+        <div class="cookie-buttons">
+            <button id="cookie-accept" class="cookie-btn cookie-btn-accept">Accept All</button>
+            <button id="cookie-decline" class="cookie-btn cookie-btn-decline">Decline</button>
+        </div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">Clothify</div>
+            <ul class="nav-links">
+                <li><a href="#home" data-i18n="nav_home">Home</a></li>
+                <li><a href="#collection" data-i18n="nav_collection">Collection</a></li>
+                <li><a href="#about" data-i18n="nav_about">About</a></li>
+                <li><a href="#contact" data-i18n="nav_contact">Contact</a></li>
+            </ul>
+            <div class="nav-icons">
+                <div class="lang-switcher">
+                    <select id="lang-select">
+                        <option value="en">English</option>
+                        <option value="fr">Français</option>
+                    </select>
+                </div>
+                <i class="fa-solid fa-magnifying-glass search-btn"></i>
+                <div class="user-icon-nav" id="user-btn" title="My Account">
+                    <i class="fa-regular fa-user"></i>
+                </div>
+                <div class="compare-icon" id="compare-btn" title="Compare Products">
+                    <i class="fa-solid fa-scale-balanced"></i>
+                    <span id="compare-count">0</span>
+                </div>
+                <div class="cart-icon">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span id="cart-count">0</span>
+                </div>
+                <div class="hamburger" id="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu" id="mobile-menu">
+        <div class="mobile-menu-content">
+            <ul class="mobile-nav-links">
+                <li><a href="#home" data-i18n="nav_home">Home</a></li>
+                <li><a href="#collection" data-i18n="nav_collection">Collection</a></li>
+                <li><a href="#about" data-i18n="nav_about">About</a></li>
+                <li><a href="#contact" data-i18n="nav_contact">Contact</a></li>
+                <li><a href="#" id="mobile-feedback-btn" data-i18n="mobile_feedback">Share Opinion</a></li>
+                <li><a href="#" id="mobile-account-btn"><i class="fa-regular fa-user"></i> My Account</a></li>
+            </ul>
+            <div class="mobile-menu-lang">
+                <h4>Language</h4>
+                <select id="mobile-lang-select">
+                    <option value="en">English</option>
+                    <option value="fr">Français</option>
+                </select>
+            </div>
+            <div class="mobile-menu-categories">
+                <h4 data-i18n="categories_title">Categories</h4>
+                <ul id="mobile-category-list"></ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <header id="home" class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1 data-i18n="hero_title">NEW ARRIVAL</h1>
+                <p data-i18n="hero_subtitle">Discover our latest collection of modern apparel designed for comfort and style.</p>
+                <a href="#collection" class="btn" data-i18n="shop_now">Shop Now</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container">
+            <div class="about-grid">
+                <div class="about-image reveal reveal-left">
+                    <img src="https://images.unsplash.com/photo-1534126416832-a88fdf2911c2?auto=format&fit=crop&q=80&w=1260" alt="About Clothify">
+                </div>
+                <div class="about-content reveal reveal-right">
+                    <h2 class="section-title" data-i18n="about_title">Our Story</h2>
+                    <p data-i18n="about_p1">Founded in 2026, Clothify was born out of a passion for minimalist design and sustainable fashion.</p>
+                    <p data-i18n="about_p2">Our mission is to provide premium apparel that bridges the gap between high-end luxury and everyday versatility.</p>
+                    <div class="about-stats">
+                        <div class="stat-item">
+                            <h3>10k+</h3>
+                            <p data-i18n="stat_customers">Happy Customers</p>
+                        </div>
+                        <div class="stat-item">
+                            <h3>500+</h3>
+                            <p data-i18n="stat_designs">Modern Designs</p>
+                        </div>
+                        <div class="stat-item">
+                            <h3>100%</h3>
+                            <p data-i18n="stat_sustainable">Sustainable</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Recently Viewed -->
+    <section id="recently-viewed" class="recently-viewed" style="display:none;">
+        <div class="container">
+            <h2 class="section-title reveal reveal-up" data-i18n="recently_viewed_title">Recently Viewed</h2>
+            <div class="recently-grid" id="recently-grid"></div>
+        </div>
+    </section>
+
+    <!-- Product Grid -->
+    <section id="collection" class="products">
+        <div class="container">
+            <h2 class="section-title reveal reveal-up" data-i18n="collection_title">Our Collection</h2>
+            <div class="collection-toolbar">
+                <select id="sort-select" class="sort-select">
+                    <option value="default">Sort by: Featured</option>
+                    <option value="price-asc">Price: Low to High</option>
+                    <option value="price-desc">Price: High to Low</option>
+                    <option value="name-asc">Name: A to Z</option>
+                    <option value="name-desc">Name: Z to A</option>
+                    <option value="rating">Top Rated</option>
+                </select>
+                <button id="wishlist-toggle" class="wishlist-filter-btn" onclick="showWishlistOnly()">
+                    <i class="fa-regular fa-heart"></i>
+                    <span data-i18n="wishlist_btn">Wishlist</span>
+                </button>
+            </div>
+            <div class="product-grid" id="product-grid"></div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact" class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-about reveal reveal-up">
+                    <h3>Clothify</h3>
+                    <p data-i18n="footer_about">Elevating your daily style with premium quality apparel.</p>
+                    <div class="footer-social-links" style="margin-top:15px;">
+                        <a href="https://facebook.com/clothify" target="_blank" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>
+                        <a href="https://instagram.com/clothify" target="_blank" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="https://twitter.com/clothify" target="_blank" aria-label="Twitter"><i class="fa-brands fa-twitter"></i></a>
+                        <a href="https://pinterest.com/clothify" target="_blank" aria-label="Pinterest"><i class="fa-brands fa-pinterest"></i></a>
+                        <a href="https://youtube.com/@clothify" target="_blank" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="footer-links reveal reveal-up">
+                    <h3 data-i18n="quick_links">Quick Links</h3>
+                    <ul>
+                        <li><a href="#" onclick="openAccountDashboard()">My Account</a></li>
+                        <li><a href="#" onclick="openOrderTracking()">Order Tracking</a></li>
+                        <li><a href="#" onclick="openSizeChart()">Size Guide</a></li>
+                        <li><a href="#">Shipping Info</a></li>
+                        <li><a href="#">Returns & Exchanges</a></li>
+                    </ul>
+                </div>
+                <div class="footer-newsletter reveal reveal-up">
+                    <h3 data-i18n="newsletter_title">Newsletter</h3>
+                    <p class="newsletter-desc" data-i18n="newsletter_desc">Subscribe for exclusive deals and new arrivals</p>
+                    <form id="subscribe-form" class="footer-form subscribe-form">
+                        <input type="email" id="subscribe-email" placeholder="Your email address" required>
+                        <button type="submit" class="btn subscribe-btn" data-i18n="subscribe_btn">Subscribe</button>
+                    </form>
+                </div>
+            </div>
+            <p class="copyright">&copy; 2026 Clothify. <span data-i18n="footer_rights">All rights reserved.</span></p>
+        </div>
+    </footer>
+
+    <!-- Email Verification Banner -->
+    <div id="email-verify-banner" class="email-verify-banner" style="display:none;">
+        <p><i class="fa-solid fa-envelope-circle-check"></i> Please verify your email address. <a href="#" id="resend-verify-link">Resend verification</a></p>
+        <i class="fa-solid fa-xmark close-verify-banner" onclick="this.parentElement.style.display='none'"></i>
+    </div>
+
+    <!-- Product Details Modal -->
+    <div id="product-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="modal-body">
+                <div class="modal-image" id="modal-image-container">
+                    <div class="img-zoom-container">
+                        <img id="modal-img" src="" alt="">
+                        <div id="img-zoom-lens" class="img-zoom-lens"></div>
+                        <div id="img-zoom-result" class="img-zoom-result"></div>
+                    </div>
+                    <div class="modal-thumbnails" id="modal-thumbnails"></div>
+                </div>
+                <div class="modal-info">
+                    <h2 id="modal-title"></h2>
+                    <div class="modal-rating" id="modal-rating"></div>
+                    <p class="modal-price" id="modal-price"></p>
+                    <p class="modal-stock" id="modal-stock"></p>
+                    <div class="modal-description">
+                        <h3 data-i18n="product_details_title">Product Details</h3>
+                        <p id="modal-desc" data-i18n="product_desc_p1">Experience ultimate comfort and style with this premium piece.</p>
+                    </div>
+                    <div class="modal-actions">
+                        <div class="size-selector">
+                            <span class="size-label" id="size-label">Size:</span>
+                            <span id="size-options"></span>
+                            <button class="size-chart-btn" onclick="openSizeChart()" data-i18n="size_chart_btn">Size Chart</button>
+                        </div>
+                        <div class="quantity-selector">
+                            <button class="qty-btn minus">-</button>
+                            <input type="number" value="1" min="1" id="product-qty">
+                            <button class="qty-btn plus">+</button>
+                        </div>
+                        <button class="btn add-to-cart-modal" data-i18n="add_to_cart">Add to Cart</button>
+                        <button class="btn compare-toggle-btn" id="compare-toggle-btn" onclick="toggleCompareFromModal()"><i class="fa-solid fa-scale-balanced"></i> Compare</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Product Reviews -->
+            <div class="product-reviews">
+                <h3 data-i18n="reviews_title">Customer Reviews</h3>
+                <div class="reviews-summary" id="reviews-summary"></div>
+                <div class="reviews-list" id="reviews-list"></div>
+                <div class="review-form">
+                    <h4 data-i18n="write_review">Write a Review</h4>
+                    <div class="star-rating-input" id="star-rating-input">
+                        <i class="fa-regular fa-star" data-star="1"></i>
+                        <i class="fa-regular fa-star" data-star="2"></i>
+                        <i class="fa-regular fa-star" data-star="3"></i>
+                        <i class="fa-regular fa-star" data-star="4"></i>
+                        <i class="fa-regular fa-star" data-star="5"></i>
+                    </div>
+                    <textarea id="review-text" placeholder="Share your thoughts..." rows="3"></textarea>
+                    <button class="btn" id="submit-review-btn" data-i18n="submit_review">Submit Review</button>
+                </div>
+            </div>
+            <div class="related-products">
+                <h3 data-i18n="related_title">You May Also Like</h3>
+                <div class="related-grid" id="related-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Size Chart Modal -->
+    <div id="size-chart-modal" class="modal">
+        <div class="modal-content size-chart-content">
+            <span class="close-modal close-size-chart">&times;</span>
+            <h2 data-i18n="size_chart_title">Size Guide</h2>
+            <div class="size-chart-tabs">
+                <button class="size-chart-tab active" data-cat="tops">Tops</button>
+                <button class="size-chart-tab" data-cat="bottoms">Bottoms</button>
+                <button class="size-chart-tab" data-cat="footwear">Footwear</button>
+            </div>
+            <div class="size-chart-table-wrapper" id="size-chart-table-wrapper"></div>
+            <p class="size-chart-note" data-i18n="size_chart_note">Measurements are in inches. If between sizes, size up for relaxed fit.</p>
+        </div>
+    </div>
+
+    <!-- Search Overlay -->
+    <div id="search-overlay" class="search-overlay">
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="Search for products..." data-i18n-placeholder="search_placeholder">
+            <i class="fa-solid fa-xmark close-search"></i>
+        </div>
+        <div class="search-info container">
+            <div id="search-history" class="search-history"></div>
+            <div id="search-suggestions" class="search-suggestions">
+                <h4 data-i18n="suggested_categories">Suggested Categories</h4>
+                <div class="suggestion-tags">
+                    <span class="tag" data-i18n="cat_tops">Tops</span>
+                    <span class="tag" data-i18n="cat_outerwear">Outerwear</span>
+                    <span class="tag" data-i18n="cat_dresses">Dresses</span>
+                    <span class="tag" data-i18n="cat_footwear">Footwear</span>
+                    <span class="tag" data-i18n="cat_accessories">Accessories</span>
+                </div>
+            </div>
+        </div>
+        <div id="search-results" class="container"></div>
+    </div>
+
+    <!-- Cart Drawer -->
+    <div id="cart-drawer" class="cart-drawer">
+        <div class="cart-header">
+            <h3 data-i18n="cart_title">Your Cart</h3>
+            <i class="fa-solid fa-xmark close-cart"></i>
+        </div>
+        <div id="cart-items" class="cart-items">
+            <p class="empty-msg" data-i18n="cart_empty">Your cart is empty</p>
+        </div>
+        <div class="cart-footer">
+            <div class="coupon-section">
+                <input type="text" id="coupon-input" placeholder="Coupon code" data-i18n-placeholder="coupon_placeholder">
+                <button id="apply-coupon-btn" class="btn coupon-btn" data-i18n="apply_coupon">Apply</button>
+                <span id="coupon-message" class="coupon-message"></span>
+            </div>
+            <div class="cart-total">
+                <span data-i18n="total_label">Total:</span>
+                <span id="cart-total-amount">0.00 €</span>
+            </div>
+            <button class="btn checkout-btn" data-i18n="checkout_btn">Checkout</button>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div id="checkout-modal" class="modal">
+        <div class="modal-content checkout-content">
+            <span class="close-checkout close-modal">&times;</span>
+            <div class="modal-body">
+                <div class="checkout-form">
+                    <h2 data-i18n="checkout_title">Checkout</h2>
+                    <form id="order-form">
+                        <div class="form-group">
+                            <label for="name" data-i18n="label_name">Full Name</label>
+                            <input type="text" id="name" required placeholder="John Doe" data-i18n-placeholder="placeholder_name">
+                        </div>
+                        <div class="form-group">
+                            <label for="email" data-i18n="label_email">Email Address</label>
+                            <input type="email" id="email" required placeholder="john@example.com" data-i18n-placeholder="placeholder_email">
+                        </div>
+                        <div class="form-group">
+                            <label for="address" data-i18n="label_address">Shipping Address</label>
+                            <textarea id="address" required placeholder="Street, City, Country" data-i18n-placeholder="placeholder_address"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="country" data-i18n="label_country">Country</label>
+                            <select id="country" required>
+                                <option value="EU">European Union</option>
+                                <option value="US">United States</option>
+                                <option value="UK">United Kingdom</option>
+                                <option value="OTHER">Other</option>
+                            </select>
+                        </div>
+                        <div class="shipping-section">
+                            <h3 data-i18n="shipping_title">Shipping Method</h3>
+                            <div class="shipping-options" id="shipping-options">
+                                <label class="shipping-option">
+                                    <input type="radio" name="shipping" value="standard" checked>
+                                    <div class="shipping-info">
+                                        <strong data-i18n="shipping_standard">Standard</strong>
+                                        <span>5-7 business days</span>
+                                    </div>
+                                    <span class="shipping-price" id="shipping-standard-price">€5.00</span>
+                                </label>
+                                <label class="shipping-option">
+                                    <input type="radio" name="shipping" value="express">
+                                    <div class="shipping-info">
+                                        <strong data-i18n="shipping_express">Express</strong>
+                                        <span>2-3 business days</span>
+                                    </div>
+                                    <span class="shipping-price" id="shipping-express-price">€12.00</span>
+                                </label>
+                                <label class="shipping-option">
+                                    <input type="radio" name="shipping" value="nextday">
+                                    <div class="shipping-info">
+                                        <strong data-i18n="shipping_nextday">Next Day</strong>
+                                        <span>Next business day</span>
+                                    </div>
+                                    <span class="shipping-price" id="shipping-nextday-price">€20.00</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="payment-info">
+                            <h3 data-i18n="payment_method_title">Payment Method</h3>
+                            <div class="payment-methods">
+                                <div class="payment-option">
+                                    <input type="radio" id="method-cod" name="payment-method" value="COD" checked>
+                                    <label for="method-cod">
+                                        <i class="fa-solid fa-truck"></i>
+                                        <span data-i18n="method_cod">Cash on Delivery</span>
+                                    </label>
+                                </div>
+                                <div class="payment-option">
+                                    <input type="radio" id="method-card" name="payment-method" value="Card">
+                                    <label for="method-card">
+                                        <i class="fa-solid fa-credit-card"></i>
+                                        <span data-i18n="method_card">Credit / Debit Card</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div id="card-details-form" class="card-form-container" style="display: none;">
+                                <div class="card-brand-indicator" id="card-brand-indicator">
+                                    <i class="fa-regular fa-credit-card" id="card-brand-icon"></i>
+                                    <span id="card-brand-name">Card</span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="card-number" data-i18n="label_card_number">Card Number</label>
+                                    <input type="text" id="card-number" placeholder="0000 0000 0000 0000" maxlength="19">
+                                    <span class="card-validation-msg" id="card-number-msg"></span>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="card-expiry" data-i18n="label_expiry">Expiry Date</label>
+                                        <input type="text" id="card-expiry" placeholder="MM/YY" maxlength="5">
+                                        <span class="card-validation-msg" id="card-expiry-msg"></span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="card-cvv" data-i18n="label_cvv">CVV</label>
+                                        <input type="text" id="card-cvv" placeholder="123" maxlength="4">
+                                        <span class="card-validation-msg" id="card-cvv-msg"></span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="card-name" data-i18n="label_card_name">Cardholder Name</label>
+                                        <input type="text" id="card-name" placeholder="John Doe">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn place-order-btn" data-i18n="place_order_btn">Place Order</button>
+                    </form>
+                </div>
+                <div class="order-summary">
+                    <h3 data-i18n="order_summary_title">Order Summary</h3>
+                    <div id="checkout-items"></div>
+                    <div class="summary-line">
+                        <span data-i18n="subtotal_label">Subtotal:</span>
+                        <span id="checkout-subtotal">0.00 €</span>
+                    </div>
+                    <div class="summary-line">
+                        <span data-i18n="shipping_label">Shipping:</span>
+                        <span id="checkout-shipping">€5.00</span>
+                    </div>
+                    <div class="summary-line">
+                        <span data-i18n="tax_label">Tax (VAT):</span>
+                        <span id="checkout-tax">€0.00</span>
+                    </div>
+                    <div class="summary-line">
+                        <span>Coupon:</span>
+                        <span id="checkout-coupon" style="color:#2ecc71;">-</span>
+                    </div>
+                    <div class="summary-total">
+                        <span data-i18n="total_label">Total:</span>
+                        <span id="checkout-total">0.00 €</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Account / Feedback Modal -->
+    <div id="auth-modal" class="modal">
+        <div class="modal-content auth-modal-content">
+            <span class="close-auth close-modal">&times;</span>
+            <div class="auth-container">
+                <div class="auth-tabs">
+                    <button class="auth-tab active" onclick="switchAuthTab('feedback')" data-i18n="feedback_title">Feedback</button>
+                    <button class="auth-tab" onclick="switchAuthTab('register')" data-i18n="register_title">Register</button>
+                    <button class="auth-tab" onclick="switchAuthTab('login')">Login</button>
+                    <button class="auth-tab" onclick="switchAuthTab('reset')">Reset Password</button>
+                </div>
+                <div id="auth-feedback" class="auth-pane active">
+                    <form id="feedback-form">
+                        <div class="form-group">
+                            <label for="feedback-name" data-i18n="feedback_name_label">Your Name</label>
+                            <input type="text" id="feedback-name" required placeholder="John Doe">
+                        </div>
+                        <div class="form-group">
+                            <label for="feedback-email" data-i18n="label_email">Email Address</label>
+                            <input type="email" id="feedback-email" required placeholder="john@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="feedback-message" data-i18n="feedback_message_label">Your Message</label>
+                            <textarea id="feedback-message" required placeholder="Tell us what you think..." style="height: 100px; resize: none;"></textarea>
+                        </div>
+                        <button type="submit" class="btn" style="width: 100%;" data-i18n="feedback_btn">Send Feedback</button>
+                    </form>
+                </div>
+                <div id="auth-register" class="auth-pane">
+                    <form id="register-form">
+                        <div class="form-group">
+                            <label for="reg-name" data-i18n="feedback_name_label">Full Name</label>
+                            <input type="text" id="reg-name" required placeholder="John Doe">
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-email" data-i18n="label_email">Email Address</label>
+                            <input type="email" id="reg-email" required placeholder="john@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-password">Password</label>
+                            <input type="password" id="reg-password" required placeholder="Min 6 characters" minlength="6">
+                        </div>
+                        <button type="submit" class="btn" style="width: 100%;">Create Account</button>
+                    </form>
+                </div>
+                <div id="auth-login" class="auth-pane">
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label for="login-email">Email Address</label>
+                            <input type="email" id="login-email" required placeholder="john@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="login-password">Password</label>
+                            <input type="password" id="login-password" required placeholder="Enter password">
+                        </div>
+                        <button type="submit" class="btn" style="width: 100%;">Sign In</button>
+                    </form>
+                </div>
+                <div id="auth-reset" class="auth-pane">
+                    <form id="reset-form">
+                        <div class="form-group">
+                            <label for="reset-email">Email Address</label>
+                            <input type="email" id="reset-email" required placeholder="john@example.com">
+                        </div>
+                        <button type="submit" class="btn" style="width: 100%;">Send Reset Link</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Account Dashboard Modal -->
+    <div id="account-modal" class="modal">
+        <div class="modal-content account-modal-content">
+            <span class="close-modal close-account">&times;</span>
+            <div class="account-dashboard">
+                <div class="account-header">
+                    <div class="account-avatar"><i class="fa-regular fa-user"></i></div>
+                    <h2 id="account-welcome">Welcome</h2>
+                    <p id="account-email" style="color:#888;"></p>
+                </div>
+                <div class="account-tabs">
+                    <button class="account-tab active" data-tab="orders">My Orders</button>
+                    <button class="account-tab" data-tab="details">Account Details</button>
+                    <button class="account-tab" data-tab="wishlist-account">Wishlist</button>
+                </div>
+                <div class="account-pane active" id="account-orders">
+                    <div id="account-orders-list"><p style="text-align:center;color:#888;padding:30px;">No orders yet.</p></div>
+                </div>
+                <div class="account-pane" id="account-details">
+                    <form id="account-details-form">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="account-name">
+                        </div>
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" id="account-email-input">
+                        </div>
+                        <button type="submit" class="btn">Save Changes</button>
+                    </form>
+                </div>
+                <div class="account-pane" id="account-wishlist-pane">
+                    <div id="account-wishlist-items"></div>
+                </div>
+                <button class="btn logout-btn" onclick="logoutAccount()">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Tracking Modal -->
+    <div id="order-tracking-modal" class="modal">
+        <div class="modal-content tracking-content">
+            <span class="close-modal close-tracking">&times;</span>
+            <h2 data-i18n="tracking_title">Order Tracking</h2>
+            <div class="tracking-form">
+                <input type="text" id="tracking-input" placeholder="Enter your order ID (e.g., 12345)">
+                <button id="tracking-btn" class="btn">Track Order</button>
+            </div>
+            <div id="tracking-result" class="tracking-result"></div>
+        </div>
+    </div>
+
+    <!-- Compare Drawer -->
+    <div id="compare-drawer" class="compare-drawer">
+        <div class="compare-header">
+            <h3><i class="fa-solid fa-scale-balanced"></i> Compare Products (<span id="compare-count-label">0</span>)</h3>
+            <div class="compare-actions">
+                <button class="btn" onclick="clearCompare()">Clear All</button>
+                <i class="fa-solid fa-xmark close-compare"></i>
+            </div>
+        </div>
+        <div class="compare-body" id="compare-body">
+            <div class="compare-empty">
+                <i class="fa-solid fa-scale-balanced"></i>
+                <p>Add products to compare</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="notification" class="notification">
+        <i class="fa-solid fa-circle-check"></i>
+        <span id="notification-msg"></span>
+    </div>
+
+    <!-- Back to Top -->
+    <button id="back-to-top" class="back-to-top" aria-label="Back to top">
+        <i class="fa-solid fa-chevron-up"></i>
+    </button>
+
+    <script src="script.js?v=3"></script>
+    <script>
+    history.pushState(null, null, location.href);
+    window.addEventListener('popstate', () => {
+        const modals = ['product-modal','checkout-modal','auth-modal','search-overlay','cart-drawer','account-modal','order-tracking-modal','size-chart-modal','compare-drawer'];
+        const anyOpen = modals.some(id => {
+            const el = document.getElementById(id);
+            return el && (el.style.display === 'block' || el.classList.contains('active'));
+        });
+        if (anyOpen) {
+            modals.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    if (el.style.display === 'block') el.style.display = 'none';
+                    if (el.classList.contains('active')) el.classList.remove('active');
+                }
+            });
+            document.body.style.overflow = 'auto';
+        } else {
+            history.pushState(null, null, location.href);
+        }
+    });
+    </script>
+</body>
+</html>
