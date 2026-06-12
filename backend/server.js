@@ -143,26 +143,26 @@ async function initDb() {
   const cnt = queryOne('SELECT COUNT(*) as cnt FROM products');
   if (cnt.cnt === 0) {
     runMany(`INSERT INTO products (name, price, image, description, category, stock, rating) VALUES
-      ('Premium Tee', 290.00, 'https://images.pexels.com/photos/4066290/pexels-photo-4066290.jpeg?auto=compress&cs=tinysrgb&w=1260', 'Elevate your daily style with this premium quality tee.', 'Tops', 15, 4.5),
-      ('Denim Jacket', 899.00, 'https://images.pexels.com/photos/13662420/pexels-photo-13662420.jpeg?auto=compress&cs=tinysrgb&w=1260', 'Classic denim jacket with a modern fit and durable design.', 'Outerwear', 8, 4.2),
-      ('Summer Dress', 499.00, 'https://images.pexels.com/photos/19895977/pexels-photo-19895977.jpeg?auto=compress&cs=tinysrgb&w=1260', 'Experience ultimate comfort and style with this premium summer dress.', 'Dresses', 12, 4.7),
-      ('Canvas Sneakers', 599.00, 'https://images.pexels.com/photos/1598505/pexels-photo-1598505.jpeg?auto=compress&cs=tinysrgb&w=1260', 'Modern sneakers designed for comfort and durability.', 'Footwear', 20, 4.3),
-      ('Linen Shirt', 390.00, 'https://images.pexels.com/photos/297933/pexels-photo-297933.jpeg?auto=compress&cs=tinysrgb&w=1260', 'Light and breathable linen shirt for any occasion.', 'Tops', 3, 3.8),
-      ('Chino Pants', 450.00, 'https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&q=80&w=1260', 'Comfortable chino pants with a modern tapered fit.', 'Pants', 10, 4.0),
-      ('Beanie Hat', 190.00, 'https://images.pexels.com/photos/11170599/pexels-photo-11170599.jpeg?auto=compress&cs=tinysrgb&w=1260', 'Keep warm and stylish with this premium beanie hat.', 'Accessories', 25, 4.1),
-      ('Leather Belt', 340.00, 'https://images.pexels.com/photos/31367058/pexels-photo-31367058.jpeg?auto=compress&cs=tinysrgb&w=1260', 'High-quality leather belt with a classic finish.', 'Accessories', 18, 3.9),
-      ('Urban Hoodie', 540.00, 'https://images.pexels.com/photos/6311387/pexels-photo-6311387.jpeg?auto=compress&cs=tinysrgb&w=1260', 'Stay cozy and stylish with this oversized urban hoodie.', 'Outerwear', 7, 4.6),
-      ('Floral Skirt', 350.00, 'https://images.pexels.com/photos/1007018/pexels-photo-1007018.jpeg?auto=compress&cs=tinysrgb&w=1260', 'A beautiful floral skirt perfect for spring and summer days.', 'Dresses', 0, 4.0),
-      ('Classic Polo', 320.00, 'https://images.pexels.com/photos/1232459/pexels-photo-1232459.jpeg?auto=compress&cs=tinysrgb&w=1260', 'Timeless polo shirt made from breathable cotton piqu\u00e9.', 'Tops', 14, 4.4),
-      ('Leather Boots', 1200.00, 'https://images.pexels.com/photos/1478442/pexels-photo-1478442.jpeg?auto=compress&cs=tinysrgb&w=1260', 'Rugged and stylish leather boots built for any adventure.', 'Footwear', 5, 4.8),
-      ('Silk Scarf', 250.00, 'https://images.unsplash.com/photo-1584302179602-e4c3d3fd629d?auto=format&fit=crop&q=80&w=1260', 'Elegant silk scarf to add a touch of class to your outfit.', 'Accessories', 30, 3.5),
-      ('Slim Fit Jeans', 650.00, 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&q=80&w=1260', 'Durable slim-fit jeans with a comfortable stretch.', 'Pants', 11, 4.2),
-      ('Wool Overcoat', 1490.00, 'https://images.unsplash.com/photo-1544022613-e87ca75a784a?auto=format&fit=crop&q=80&w=1260', 'Stay warm this winter with our premium wool blend overcoat.', 'Outerwear', 4, 4.6),
-      ('Wrist Watch', 850.00, 'https://images.pexels.com/photos/277390/pexels-photo-277390.jpeg?auto=compress&cs=tinysrgb&w=1260', 'Minimalist analog watch with a genuine leather strap.', 'Accessories', 9, 4.3),
-      ('Suede Loafers', 950.00, 'https://images.pexels.com/photos/190819/pexels-photo-190819.jpeg?auto=compress&cs=tinysrgb&w=1260', 'Elegant suede loafers for a sophisticated look.', 'Footwear', 6, 4.1),
-      ('Aviator Sunglasses', 450.00, 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?auto=format&fit=crop&q=80&w=1260', 'Classic aviator sunglasses with polarized lenses.', 'Accessories', 22, 4.5),
-      ('V-Neck Sweater', 590.00, 'https://images.pexels.com/photos/45982/pexels-photo-45982.jpeg?auto=compress&cs=tinysrgb&w=1260', 'Soft wool-blend V-neck sweater for layering.', 'Tops', 2, 4.0),
-      ('Cargo Pants', 680.00, 'https://images.unsplash.com/photo-1591195853828-11db59a44f6b?auto=format&fit=crop&q=80&w=1260', 'Durable cargo pants with multiple utility pockets.', 'Pants', 16, 3.7)`);
+      ('Premium Tee', 29.00, 'https://images.pexels.com/photos/4066290/pexels-photo-4066290.jpeg?auto=compress&cs=tinysrgb&w=1260', 'Elevate your daily style with this premium quality tee.', 'Tops', 15, 4.5),
+      ('Denim Jacket', 89.00, 'https://images.pexels.com/photos/13662420/pexels-photo-13662420.jpeg?auto=compress&cs=tinysrgb&w=1260', 'Classic denim jacket with a modern fit and durable design.', 'Outerwear', 8, 4.2),
+      ('Summer Dress', 49.00, 'https://images.pexels.com/photos/19895977/pexels-photo-19895977.jpeg?auto=compress&cs=tinysrgb&w=1260', 'Experience ultimate comfort and style with this premium summer dress.', 'Dresses', 12, 4.7),
+      ('Canvas Sneakers', 59.00, 'https://images.pexels.com/photos/1598505/pexels-photo-1598505.jpeg?auto=compress&cs=tinysrgb&w=1260', 'Modern sneakers designed for comfort and durability.', 'Footwear', 20, 4.3),
+      ('Linen Shirt', 39.00, 'https://images.pexels.com/photos/297933/pexels-photo-297933.jpeg?auto=compress&cs=tinysrgb&w=1260', 'Light and breathable linen shirt for any occasion.', 'Tops', 3, 3.8),
+      ('Chino Pants', 45.00, 'https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&q=80&w=1260', 'Comfortable chino pants with a modern tapered fit.', 'Pants', 10, 4.0),
+      ('Beanie Hat', 19.00, 'https://images.pexels.com/photos/11170599/pexels-photo-11170599.jpeg?auto=compress&cs=tinysrgb&w=1260', 'Keep warm and stylish with this premium beanie hat.', 'Accessories', 25, 4.1),
+      ('Leather Belt', 34.00, 'https://images.pexels.com/photos/31367058/pexels-photo-31367058.jpeg?auto=compress&cs=tinysrgb&w=1260', 'High-quality leather belt with a classic finish.', 'Accessories', 18, 3.9),
+      ('Urban Hoodie', 54.00, 'https://images.pexels.com/photos/6311387/pexels-photo-6311387.jpeg?auto=compress&cs=tinysrgb&w=1260', 'Stay cozy and stylish with this oversized urban hoodie.', 'Outerwear', 7, 4.6),
+      ('Floral Skirt', 35.00, 'https://images.pexels.com/photos/1007018/pexels-photo-1007018.jpeg?auto=compress&cs=tinysrgb&w=1260', 'A beautiful floral skirt perfect for spring and summer days.', 'Dresses', 0, 4.0),
+      ('Classic Polo', 32.00, 'https://images.pexels.com/photos/1232459/pexels-photo-1232459.jpeg?auto=compress&cs=tinysrgb&w=1260', 'Timeless polo shirt made from breathable cotton piqu\u00e9.', 'Tops', 14, 4.4),
+      ('Leather Boots', 89.00, 'https://images.pexels.com/photos/1478442/pexels-photo-1478442.jpeg?auto=compress&cs=tinysrgb&w=1260', 'Rugged and stylish leather boots built for any adventure.', 'Footwear', 5, 4.8),
+      ('Silk Scarf', 25.00, 'https://images.unsplash.com/photo-1584302179602-e4c3d3fd629d?auto=format&fit=crop&q=80&w=1260', 'Elegant silk scarf to add a touch of class to your outfit.', 'Accessories', 30, 3.5),
+      ('Slim Fit Jeans', 49.00, 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&q=80&w=1260', 'Durable slim-fit jeans with a comfortable stretch.', 'Pants', 11, 4.2),
+      ('Wool Overcoat', 99.00, 'https://images.unsplash.com/photo-1544022613-e87ca75a784a?auto=format&fit=crop&q=80&w=1260', 'Stay warm this winter with our premium wool blend overcoat.', 'Outerwear', 4, 4.6),
+      ('Wrist Watch', 59.00, 'https://images.pexels.com/photos/277390/pexels-photo-277390.jpeg?auto=compress&cs=tinysrgb&w=1260', 'Minimalist analog watch with a genuine leather strap.', 'Accessories', 9, 4.3),
+      ('Suede Loafers', 69.00, 'https://images.pexels.com/photos/190819/pexels-photo-190819.jpeg?auto=compress&cs=tinysrgb&w=1260', 'Elegant suede loafers for a sophisticated look.', 'Footwear', 6, 4.1),
+      ('Aviator Sunglasses', 45.00, 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?auto=format&fit=crop&q=80&w=1260', 'Classic aviator sunglasses with polarized lenses.', 'Accessories', 22, 4.5),
+      ('V-Neck Sweater', 49.00, 'https://images.pexels.com/photos/45982/pexels-photo-45982.jpeg?auto=compress&cs=tinysrgb&w=1260', 'Soft wool-blend V-neck sweater for layering.', 'Tops', 2, 4.0),
+      ('Cargo Pants', 55.00, 'https://images.unsplash.com/photo-1591195853828-11db59a44f6b?auto=format&fit=crop&q=80&w=1260', 'Durable cargo pants with multiple utility pockets.', 'Pants', 16, 3.7)`);
   }
 
   const couponCnt = queryOne('SELECT COUNT(*) as cnt FROM coupons');

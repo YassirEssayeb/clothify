@@ -135,12 +135,12 @@ const highlightText = (text, term) => {
 
 // ---- STARS RENDER ----
 const renderStars = (rating, size = '14px') => {
-    const full = Math.floor(rating);
-    const half = rating % 1 >= 0.25 && rating % 1 < 0.75;
-    const empty = 5 - full - (half ? 1 : 0);
-    return '<span style="font-size:'+size+';color:#f1c40f">&#9733;</span>'.repeat(full) +
-        (half ? '<span style="font-size:'+size+';color:#f1c40f">&#9733;</span>' : '') +
-        '<span style="font-size:'+size+';color:#ddd">&#9734;</span>'.repeat(empty);
+    const full = Math.round(rating);
+    const empty = 5 - full;
+    const s = `style="font-size:${size};color:#f1c40f"`;
+    const e = `style="font-size:${size};color:#ddd"`;
+    return ('<i class="fa-solid fa-star" ' + s + '></i>').repeat(full) +
+        ('<i class="fa-regular fa-star" ' + e + '></i>').repeat(empty);
 };
 
 // ---- COOKIE CONSENT ----
@@ -961,8 +961,8 @@ const updateCheckoutSummary = () => {
     const total = discountedSubtotal + shipping + tax;
 
     document.getElementById('checkout-subtotal').innerText = subtotal.toFixed(2) + ' €';
-    document.getElementById('checkout-shipping').innerText = shipping === 0 ? 'Free' : '€' + shipping.toFixed(2);
-    document.getElementById('checkout-tax').innerText = '€' + tax.toFixed(2);
+    document.getElementById('checkout-shipping').innerText = shipping === 0 ? 'Free' : shipping.toFixed(2) + ' €';
+    document.getElementById('checkout-tax').innerText = tax.toFixed(2) + ' €';
     document.getElementById('checkout-coupon').innerText = discount > 0 ? '-' + discount.toFixed(2) + ' €' : '-';
     document.getElementById('checkout-total').innerText = total.toFixed(2) + ' €';
 
@@ -971,7 +971,7 @@ const updateCheckoutSummary = () => {
     document.querySelectorAll('.shipping-option').forEach(opt => {
         const input = opt.querySelector('input');
         if (input.value === 'standard') {
-            opt.querySelector('.shipping-price').textContent = free ? 'Free' : '€5.00';
+            opt.querySelector('.shipping-price').textContent = free ? 'Free' : '5.00 €';
             if (free) { input.checked = true; input.disabled = false; }
         }
     });
@@ -1128,7 +1128,7 @@ document.getElementById('tracking-btn')?.addEventListener('click', () => {
         `;
     });
     result.innerHTML = `
-        <div style="margin-bottom:16px;"><strong>Order #${order.id}</strong> | ${new Date(order.date).toLocaleDateString()} | Total: €${(order.total || 0).toFixed(2)}</div>
+        <div style="margin-bottom:16px;"><strong>Order #${order.id}</strong> | ${new Date(order.date).toLocaleDateString()} | Total: ${(order.total || 0).toFixed(2)} €</div>
         <div class="tracking-timeline">${steps}</div>
     `;
 });
@@ -1161,7 +1161,7 @@ const openAccountDashboard = () => {
                     <span class="order-id">#${o.id}</span>
                     <span class="order-status ${o.status || 'pending'}">${(o.status || 'Pending').replace('_',' ')}</span>
                 </div>
-                <div style="font-size:13px;color:#888;">${new Date(o.date).toLocaleDateString()} | ${o.items ? o.items.length : 0} item(s) | €${(o.total || 0).toFixed(2)}</div>
+                <div style="font-size:13px;color:#888;">${new Date(o.date).toLocaleDateString()} | ${o.items ? o.items.length : 0} item(s) | ${(o.total || 0).toFixed(2)} €</div>
             `;
             ordersList.appendChild(card);
         });

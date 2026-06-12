@@ -280,7 +280,7 @@
                     <input type="text" id="category" placeholder="e.g., Tops, Dresses">
                 </div>
                 <div class="form-group">
-                    <label for="price">Price (MAD)</label>
+                    <label for="price">Price (€)</label>
                     <input type="number" id="price" step="0.01" required>
                 </div>
                 <div class="form-group">
@@ -336,7 +336,7 @@
                     <td><img src="${p.image}" class="product-img-small"></td>
                     <td>${p.name}</td>
                     <td>${p.category || 'N/A'}</td>
-                    <td>${p.price} MAD</td>
+                    <td>${p.price} €</td>
                     <td class="action-btns">
                         <i class="fa-solid fa-pen-to-square btn-edit" onclick="editProduct(${p.id})"></i>
                         <i class="fa-solid fa-trash btn-delete" onclick="deleteProduct(${p.id})"></i>
@@ -467,7 +467,7 @@
             orders.forEach(order => {
                 const statusClass = `status-${order.status || 'pending'}`;
                 const itemsHtml = (order.items || []).map(item => 
-                    `${item.product?.name || 'Product'} x${item.quantity} - ${item.price} MAD`
+                    `${item.product?.name || 'Product'} x${item.quantity} - ${item.price} €`
                 ).join(', ');
                 const total = order.items?.reduce((s, i) => s + (i.price * i.quantity), 0) || order.total_amount;
 
@@ -482,7 +482,7 @@
                         <span><strong>Customer:</strong> ${order.customer_name || 'N/A'}</span>
                         <span><strong>Email:</strong> ${order.customer_email || 'N/A'}</span>
                         <span><strong>Date:</strong> ${new Date(order.created_at).toLocaleDateString()}</span>
-                        <span><strong>Total:</strong> ${Number(total).toFixed(2)} MAD</span>
+                        <span><strong>Total:</strong> ${Number(total).toFixed(2)} €</span>
                         <span><strong>Payment:</strong> ${order.payment_method || 'COD'} (${order.payment_status || 'Pending'})</span>
                         <span><strong>Address:</strong> ${(order.customer_address || '').substring(0, 30)}${(order.customer_address || '').length > 30 ? '...' : ''}</span>
                     </div>
