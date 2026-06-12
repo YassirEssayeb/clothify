@@ -73,9 +73,6 @@ const translations = {
 
 const API_BASE = 'http://localhost:5000/api';
 
-const promoCode = "FREESHIP"; // valid promo
-const couponDatabase = { SAVE10:10, WELCOME20:20, FREESHIP:0 };
-
 let currentLang = localStorage.getItem('clothify_lang') || 'en';
 let currentSort = 'default';
 let currentFilter = null;
@@ -158,45 +155,6 @@ const renderStars = (rating, size = '14px') => {
         document.getElementById('cookie-consent').style.display = 'none';
     });
 })();
-
-// ---- IMAGE ZOOM ----
-const initImageZoom = () => {
-    const img = document.getElementById('modal-img');
-    const lens = document.getElementById('img-zoom-lens');
-    const result = document.getElementById('img-zoom-result');
-    const container = document.querySelector('.img-zoom-container');
-    if (!img || !lens || !result) return;
-
-    const removeZoom = () => { lens.style.display = 'none'; result.style.display = 'none'; };
-
-    const doZoom = (e) => {
-        if (window.innerWidth < 769) { removeZoom(); return; }
-        lens.style.display = 'block';
-        result.style.display = 'block';
-        const rect = container.getBoundingClientRect();
-        const cx = rect.left + window.scrollX;
-        const cy = rect.top + window.scrollY;
-        let x = e.clientX - cx - lens.offsetWidth / 2;
-        let y = e.clientY - cy - lens.offsetHeight / 2;
-        x = Math.max(0, Math.min(x, rect.width - lens.offsetWidth));
-        y = Math.max(0, Math.min(y, rect.height - lens.offsetHeight));
-        lens.style.left = x + 'px';
-        lens.style.top = y + 'px';
-        const rw = result.offsetWidth / lens.offsetWidth;
-        const rh = result.offsetHeight / lens.offsetHeight;
-        const bgW = img.naturalWidth * rw;
-        const bgH = img.naturalHeight * rh;
-        result.style.backgroundImage = `url('${img.src}')`;
-        result.style.backgroundSize = bgW + 'px ' + bgH + 'px';
-        result.style.backgroundPosition = `-${x * rw}px -${y * rh}px`;
-    };
-
-    container.addEventListener('mouseenter', () => {
-        if (window.innerWidth > 768) lens.style.display = 'block';
-    });
-    container.addEventListener('mousemove', doZoom);
-    container.addEventListener('mouseleave', removeZoom);
-};
 
 // ---- LOAD PRODUCTS ----
 const loadProducts = async () => {
@@ -658,7 +616,6 @@ const openProductModal = (product) => {
     if (document.getElementById('search-overlay').classList.contains('active')) toggleSearch();
     modal.style.display = 'block';
     document.body.style.overflow = 'hidden';
-    setTimeout(initImageZoom, 100);
 };
 
 document.querySelector('.close-modal').addEventListener('click', () => {
@@ -925,7 +882,6 @@ const filterProductsByCategory = (category) => {
 // ---- CHECKOUT ----
 const checkoutModal = document.getElementById('checkout-modal');
 const checkoutItemsContainer = document.getElementById('checkout-items');
-const checkoutTotalElement = document.getElementById('checkout-total');
 const orderForm = document.getElementById('order-form');
 
 const getShippingCost = () => {

@@ -285,7 +285,8 @@ app.post('/api/login', (req, res) => {
   if (!user) {
     return res.status(401).json({ error: 'Invalid email or password' });
   }
-  res.json({ message: 'Login successful!', user });
+  const token = crypto.randomBytes(32).toString('hex');
+  res.json({ message: 'Login successful!', user, token });
 });
 
 app.post('/api/password-reset', (req, res) => {
@@ -344,6 +345,89 @@ app.post('/api/feedback', (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Failed to save feedback' });
   }
+});
+
+// ─── Admin: Product CRUD ────────────────────────────────────────
+
+app.post('/api/products', (req, res) => {
+  const { name, category, price, image, description, stock, rating } = req.body;
+  if (!name || price === undefined) return res.status(400).json({ error: 'Name and price are required' });
+  try {
+    run('INSERT INTO products (name, category, price, image, description, stock, rating) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [name, category || null, parseFloat(price), image || '', description || '', stock !== undefined ? parseInt(stock) : 10, rating !== undefined ? parseFloat(rating) : 4.0]);
+    const product = queryOne('SELECT last_insert_rowid() as id');
+    res.status(201).json({ message: 'Product created', id: product.id });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create product' });
+  }
+});
+
+app.put('/api/products/:id', (req, res) => {
+  const { name, category, price, image, description, stock, rating } = req.body;
+  if (!queryOne('SELECT id FROM products WHERE id = ?', [req.params.id])) {
+    return res.status(404).json({ error: 'Product not found' });
+  }
+  try {
+    const fields = {}, params = [];
+    if (name !== undefined) { fields.name = name; params.push(name); }
+    if (category !== undefined) { fields.category = category; params.push(category); }
+    if (price !== undefined) { fields.price = parseFloat(price); params.push(parseFloat(price)); }
+    if (image !== undefined) { fields.image = image; params.push(image); }
+    if (description !== undefined) { fields.description = description; params.push(description); }
+    if (stock !== undefined) { fields.stock = parseInt(stock); params.push(parseInt(stock)); }
+    if (rating !== undefined) { fields.rating = parseFloat(rating); params.push(parseFloat(rating)); }
+    const setClause = Object.keys(fields).map(k => `${k} = ?`).join(', ');
+    params.push(req.params.id);
+    run(`UPDATE products SET ${setClause} WHERE id = ?`, params);
+    res.json({ message: 'Product updated' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update product' });
+  }
+});
+
+app.delete('/api/products/:id', (req, res) => {
+  try {
+    run('DELETE FROM products WHERE id = ?', [req.params.id]);
+    res.json({ message: 'Product deleted' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete product' });
+  }
+});
+
+// ─── Admin: Orders ──────────────────────────────────────────────
+
+app.get('/api/admin/orders', (req, res) => {
+  const orders = queryAll('SELECT * FROM orders ORDER BY created_at DESC');
+  for (const order of orders) {
+    order.items = queryAll('SELECT * FROM order_items WHERE order_id = ?', [order.id]);
+    order.tracking = queryAll('SELECT * FROM order_tracking WHERE order_id = ? ORDER BY created_at ASC', [order.id]);
+  }
+  res.json(orders);
+});
+
+app.put('/api/orders/:id', (req, res) => {
+  const { status } = req.body;
+  const validStatuses = ['pending', 'processing', 'confirmed', 'shipped', 'out_for_delivery', 'delivered', 'cancelled'];
+  if (!validStatuses.includes(status)) {
+    return res.status(400).json({ error: 'Invalid status' });
+  }
+  if (!queryOne('SELECT id FROM orders WHERE id = ?', [req.params.id])) {
+    return res.status(404).json({ error: 'Order not found' });
+  }
+  try {
+    run('UPDATE orders SET status = ? WHERE id = ?', [status, req.params.id]);
+    run('INSERT INTO order_tracking (order_id, status, note) VALUES (?, ?, ?)',
+      [req.params.id, status, `Status updated to ${status.replace(/_/g, ' ')}`]);
+    res.json({ message: 'Order status updated' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update order status' });
+  }
+});
+
+// ─── Auth ───────────────────────────────────────────────────────
+
+app.post('/api/logout', (req, res) => {
+  res.json({ message: 'Logged out successfully' });
 });
 
 app.get('/', (req, res) => {
