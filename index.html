@@ -16,8 +16,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👕</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e67e22' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z'/><line x1='7' y1='7' x2='7.01' y2='7'/></svg>">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
     <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-XXXXXXXXXX');</script>
     <!-- 🔴 Replace G-XXXXXXXXXX with your real GA4 measurement ID from https://analytics.google.com -->
@@ -49,23 +49,23 @@
                         <option value="fr">Français</option>
                     </select>
                 </div>
-                <i class="fa-solid fa-magnifying-glass search-btn"></i>
-                <div class="user-icon-nav" id="user-btn" title="My Account">
+                <i class="fa-solid fa-magnifying-glass search-btn" aria-label="Search products" role="button" tabindex="0"></i>
+                <div class="user-icon-nav" id="user-btn" title="My Account" aria-label="My Account" role="button" tabindex="0">
                     <i class="fa-regular fa-user"></i>
                 </div>
-                <div class="compare-icon" id="compare-btn" title="Compare Products">
+                <div class="compare-icon" id="compare-btn" title="Compare Products" aria-label="Compare Products" role="button" tabindex="0">
                     <i class="fa-solid fa-scale-balanced"></i>
                     <span id="compare-count">0</span>
                 </div>
-                <div class="cart-icon">
+                <div class="cart-icon" aria-label="Shopping cart" role="button" tabindex="0">
                     <i class="fa-solid fa-cart-shopping"></i>
                     <span id="cart-count">0</span>
                 </div>
-                <div class="hamburger" id="hamburger">
+                <button class="hamburger" id="hamburger" aria-label="Toggle navigation menu">
                     <span></span>
                     <span></span>
                     <span></span>
-                </div>
+                </button>
             </div>
         </div>
     </nav>
@@ -174,11 +174,11 @@
                     <h3>Clothify</h3>
                     <p data-i18n="footer_about">Elevating your daily style with premium quality apparel.</p>
                     <div class="footer-social-links" style="margin-top:15px;">
-                        <span aria-label="Facebook"><i class="fa-brands fa-facebook"></i></span>
-                        <span aria-label="Instagram"><i class="fa-brands fa-instagram"></i></span>
-                        <span aria-label="Twitter"><i class="fa-brands fa-twitter"></i></span>
-                        <span aria-label="Pinterest"><i class="fa-brands fa-pinterest"></i></span>
-                        <span aria-label="YouTube"><i class="fa-brands fa-youtube"></i></span>
+                        <a href="#" aria-label="Facebook" rel="noopener noreferrer"><i class="fa-brands fa-facebook"></i></a>
+                        <a href="#" aria-label="Instagram" rel="noopener noreferrer"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="#" aria-label="Twitter" rel="noopener noreferrer"><i class="fa-brands fa-twitter"></i></a>
+                        <a href="#" aria-label="Pinterest" rel="noopener noreferrer"><i class="fa-brands fa-pinterest"></i></a>
+                        <a href="#" aria-label="YouTube" rel="noopener noreferrer"><i class="fa-brands fa-youtube"></i></a>
                     </div>
                 </div>
                 <div class="footer-links reveal reveal-up">
@@ -287,7 +287,7 @@
     <!-- Search Overlay -->
     <div id="search-overlay" class="search-overlay">
         <div class="search-container">
-            <input type="text" id="search-input" placeholder="Search for products..." data-i18n-placeholder="search_placeholder">
+            <input type="text" id="search-input" placeholder="Search for products..." data-i18n-placeholder="search_placeholder" autocomplete="off">
             <i class="fa-solid fa-xmark close-search"></i>
         </div>
         <div class="search-info container">
@@ -412,7 +412,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="card-number" data-i18n="label_card_number">Card Number</label>
-                                    <input type="text" id="card-number" placeholder="0000 0000 0000 0000" maxlength="19">
+                                    <input type="tel" id="card-number" placeholder="0000 0000 0000 0000" maxlength="19" inputmode="numeric" autocomplete="cc-number">
                                     <span class="card-validation-msg" id="card-number-msg"></span>
                                 </div>
                                 <div class="form-row">
@@ -504,7 +504,7 @@
                         </div>
                         <div class="form-group">
                             <label for="reg-password">Password</label>
-                            <input type="password" id="reg-password" required placeholder="Min 6 characters" minlength="6">
+                            <input type="password" id="reg-password" required placeholder="Min 6 characters" minlength="6" autocomplete="new-password">
                         </div>
                         <button type="submit" class="btn" style="width: 100%;">Create Account</button>
                     </form>
@@ -556,11 +556,11 @@
                 <div class="account-pane" id="account-details">
                     <form id="account-details-form">
                         <div class="form-group">
-                            <label>Full Name</label>
+                            <label for="account-name">Full Name</label>
                             <input type="text" id="account-name">
                         </div>
                         <div class="form-group">
-                            <label>Email Address</label>
+                            <label for="account-email-input">Email Address</label>
                             <input type="email" id="account-email-input">
                         </div>
                         <button type="submit" class="btn">Save Changes</button>
@@ -605,7 +605,7 @@
     </div>
 
     <!-- Notification Toast -->
-    <div id="notification" class="notification">
+    <div id="notification" class="notification" aria-live="polite" role="status">
         <i class="fa-solid fa-circle-check"></i>
         <span id="notification-msg"></span>
     </div>

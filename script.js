@@ -71,9 +71,13 @@ const translations = {
     }
 };
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = '/api';
 
 let currentLang = localStorage.getItem('clothify_lang') || 'en';
+
+const formatPrice = (amount) => {
+    return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount) + ' \u20AC';
+};
 let currentSort = 'default';
 let currentFilter = null;
 let cart = JSON.parse(localStorage.getItem('clothify_cart')) || [];
@@ -212,7 +216,7 @@ const renderProducts = (products, container = document.getElementById('product-g
                     ${renderStars(avgRating)}
                     <span class="rating-count">(${product.reviews ? product.reviews.length : 0})</span>
                 </div>
-                <p class="price">${parseFloat(product.price).toFixed(2)} €</p>
+                <p class="price">${formatPrice(product.price)}</p>
                 <button class="add-to-cart" data-id="${product.id}" ${product.stock === 0 ? 'disabled' : ''}>${product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}</button>
             </div>
         `;
@@ -310,7 +314,7 @@ const updateCartUI = () => {
             <img src="${item.image}" alt="${item.name}" class="cart-item-img">
             <div class="cart-item-details">
                 <h4>${item.name} ${item.selectedSize ? `<span class="cart-item-size">(${item.selectedSize})</span>` : ''}</h4>
-                <p class="cart-item-price">${parseFloat(item.price).toFixed(2)} €</p>
+                <p class="cart-item-price">${formatPrice(item.price)}</p>
                 <div class="cart-item-qty">
                     <button class="qty-btn" onclick="updateQuantity(${item.id}, -1)">-</button>
                     <span>${item.quantity}</span>
@@ -321,7 +325,7 @@ const updateCartUI = () => {
         `;
         container.appendChild(el);
     });
-    document.getElementById('cart-total-amount').innerText = total.toFixed(2) + ' €';
+    document.getElementById('cart-total-amount').innerText = formatPrice(total);
 };
 
 window.updateQuantity = updateQuantity;
@@ -445,13 +449,23 @@ const renderRecentlyViewed = () => {
             </div>
             <div class="product-info">
                 <h3 style="font-size:14px;">${product.name}</h3>
-                <p class="price" style="font-size:14px;">${parseFloat(product.price).toFixed(2)} €</p>
+                <p class="price" style="font-size:14px;">${formatPrice(product.price)}</p>
             </div>
         `;
         card.addEventListener('click', () => openProductModal(product));
         grid.appendChild(card);
     });
 };
+
+// ---- KEYBOARD ACCESSIBILITY ----
+document.querySelectorAll('[role="button"]').forEach(el => {
+    el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            el.click();
+        }
+    });
+});
 
 // ---- CART DRAWER / CHECKOUT ----
 document.querySelector('.cart-icon').addEventListener('click', () => {
@@ -531,7 +545,7 @@ const renderRelatedProducts = (category, excludeId) => {
             </div>
             <div class="product-info">
                 <h3>${p.name}</h3>
-                <p class="price">${parseFloat(p.price).toFixed(2)} €</p>
+                <p class="price">${formatPrice(p.price)}</p>
             </div>
         `;
         card.querySelector('.wishlist-btn')?.addEventListener('click', (e) => { e.stopPropagation(); toggleWishlist(p); });
@@ -544,7 +558,7 @@ const openProductModal = (product) => {
     currentModalProduct = product;
     modalImg.src = product.image;
     modalTitle.innerText = product.name;
-    modalPrice.innerText = `${parseFloat(product.price).toFixed(2)} €`;
+    modalPrice.innerText = formatPrice(product.price);
     modalDesc.innerText = product.description || 'Premium quality apparel.';
     productQty.value = 1;
 
@@ -582,24 +596,10 @@ const openProductModal = (product) => {
         });
     });
 
-    // Thumbnails
+    // Hide thumbnails
     const thumbs = document.getElementById('modal-thumbnails');
     thumbs.innerHTML = '';
-    thumbs.style.display = '';
-    const imgs = product.images && product.images.length > 1 ? product.images.slice(0, 4) : null;
-    if (imgs) {
-        imgs.forEach((url, i) => {
-            const thumb = document.createElement('img');
-            thumb.src = url; thumb.alt = `${product.name} ${i+1}`;
-            thumb.className = `thumb-img${i === 0 ? ' active' : ''}`;
-            thumb.addEventListener('click', () => {
-                modalImg.src = url;
-                thumbs.querySelectorAll('.thumb-img').forEach(t => t.classList.remove('active'));
-                thumb.classList.add('active');
-            });
-            thumbs.appendChild(thumb);
-        });
-    } else thumbs.style.display = 'none';
+    thumbs.style.display = 'none';
 
     // Reviews
     renderReviews(product);
@@ -662,7 +662,7 @@ const renderReviews = (product) => {
             <div class="review-header">
                 <span class="review-stars">${renderStars(r.rating)}</span>
                 <span class="review-author">${r.author || 'Anonymous'}</span>
-                <span class="review-date">${new Date(r.date).toLocaleDateString()}</span>
+                <span class="review-date">${new Date(r.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
             </div>
             <p class="review-text">${r.text}</p>
         `;
@@ -747,7 +747,7 @@ const updateCompareUI = () => {
             <i class="fa-solid fa-xmark remove-compare" onclick="removeFromCompare(${p.id})"></i>
             <img src="${p.image}" alt="${p.name}">
             <h4>${p.name}</h4>
-            <div class="compare-price">${parseFloat(p.price).toFixed(2)} €</div>
+            <div class="compare-price">${formatPrice(p.price)}</div>
             <div class="compare-attr">Category: ${p.category}</div>
             <div class="compare-attr">Stock: ${p.stock > 0 ? p.stock : 'Out of Stock'}</div>
             <div class="compare-attr">Rating: ${renderStars(p.rating || 0)}</div>
@@ -916,11 +916,11 @@ const updateCheckoutSummary = () => {
     const tax = discountedSubtotal * taxRate;
     const total = discountedSubtotal + shipping + tax;
 
-    document.getElementById('checkout-subtotal').innerText = subtotal.toFixed(2) + ' €';
-    document.getElementById('checkout-shipping').innerText = shipping === 0 ? 'Free' : shipping.toFixed(2) + ' €';
-    document.getElementById('checkout-tax').innerText = tax.toFixed(2) + ' €';
-    document.getElementById('checkout-coupon').innerText = discount > 0 ? '-' + discount.toFixed(2) + ' €' : '-';
-    document.getElementById('checkout-total').innerText = total.toFixed(2) + ' €';
+    document.getElementById('checkout-subtotal').innerText = formatPrice(subtotal);
+    document.getElementById('checkout-shipping').innerText = shipping === 0 ? 'Free' : formatPrice(shipping);
+    document.getElementById('checkout-tax').innerText = formatPrice(tax);
+    document.getElementById('checkout-coupon').innerText = discount > 0 ? '-' + formatPrice(discount) : '-';
+    document.getElementById('checkout-total').innerText = formatPrice(total);
 
     // Update shipping labels
     const free = subtotal >= 100 || hasFreeShipping();
@@ -944,7 +944,7 @@ const openCheckoutModal = () => {
         total += item.price * item.quantity;
         const el = document.createElement('div');
         el.className = 'summary-item';
-        el.innerHTML = `<span>${item.name}${item.selectedSize ? ` (${item.selectedSize})` : ''} x ${item.quantity}</span><span>${(parseFloat(item.price) * item.quantity).toFixed(2)} €</span>`;
+        el.innerHTML = `<span>${item.name}${item.selectedSize ? ` (${item.selectedSize})` : ''} x ${item.quantity}</span><span>${formatPrice(parseFloat(item.price) * item.quantity)}</span>`;
         checkoutItemsContainer.appendChild(el);
     });
     updateCheckoutSummary();
@@ -1084,7 +1084,7 @@ document.getElementById('tracking-btn')?.addEventListener('click', () => {
         `;
     });
     result.innerHTML = `
-        <div style="margin-bottom:16px;"><strong>Order #${order.id}</strong> | ${new Date(order.date).toLocaleDateString()} | Total: ${(order.total || 0).toFixed(2)} €</div>
+        <div style="margin-bottom:16px;"><strong>Order #${order.id}</strong> | ${new Date(order.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })} | Total: ${formatPrice(order.total || 0)}</div>
         <div class="tracking-timeline">${steps}</div>
     `;
 });
@@ -1117,7 +1117,7 @@ const openAccountDashboard = () => {
                     <span class="order-id">#${o.id}</span>
                     <span class="order-status ${o.status || 'pending'}">${(o.status || 'Pending').replace('_',' ')}</span>
                 </div>
-                <div style="font-size:13px;color:#888;">${new Date(o.date).toLocaleDateString()} | ${o.items ? o.items.length : 0} item(s) | ${(o.total || 0).toFixed(2)} €</div>
+                <div style="font-size:13px;color:#888;">${new Date(o.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })} | ${o.items ? o.items.length : 0} item(s) | ${formatPrice(o.total || 0)}</div>
             `;
             ordersList.appendChild(card);
         });
@@ -1137,7 +1137,7 @@ const openAccountDashboard = () => {
                     <img src="${p.image}" alt="${p.name}" style="width:60px;height:70px;object-fit:cover;border-radius:4px;">
                     <div style="flex:1;">
                         <strong>${p.name}</strong><br>
-                        <span style="color:var(--accent-color);font-weight:600;">${parseFloat(p.price).toFixed(2)} €</span>
+                        <span style="color:var(--accent-color);font-weight:600;">${formatPrice(p.price)}</span>
                     </div>
                     <button class="btn" style="font-size:12px;padding:8px 16px;" onclick="addToCart(allProducts.find(pr=>pr.id===${p.id}),1,this); showNotification('Added to cart!');">Add to Cart</button>
                 </div>

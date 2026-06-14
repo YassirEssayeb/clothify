@@ -33,6 +33,16 @@ function run(sql, params = []) {
   saveDb();
 }
 
+function insertAndGetId(sql, params = []) {
+  db.run(sql, params);
+  const stmt = db.prepare('SELECT last_insert_rowid() as id');
+  stmt.step();
+  const result = stmt.getAsObject();
+  stmt.free();
+  saveDb();
+  return result.id;
+}
+
 function runMany(sql) {
   db.exec(sql);
   saveDb();
@@ -206,10 +216,8 @@ app.post('/api/orders', (req, res) => {
     return res.status(400).json({ error: 'Missing required order information' });
   }
   try {
-    run('INSERT INTO orders (customer_name, customer_email, customer_address, total_amount, payment_method, payment_status, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    const orderId = insertAndGetId('INSERT INTO orders (customer_name, customer_email, customer_address, total_amount, payment_method, payment_status, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
       [name, email, address, total, paymentMethod || 'COD', paymentStatus || 'Pending', 'pending']);
-    const order = queryOne('SELECT last_insert_rowid() as id');
-    const orderId = order.id;
     for (const item of cart) {
       run('INSERT INTO order_items (order_id, product_id, product_name, quantity, price) VALUES (?, ?, ?, ?, ?)',
         [orderId, item.id, item.name, item.quantity, item.price]);
@@ -353,10 +361,9 @@ app.post('/api/products', (req, res) => {
   const { name, category, price, image, description, stock, rating } = req.body;
   if (!name || price === undefined) return res.status(400).json({ error: 'Name and price are required' });
   try {
-    run('INSERT INTO products (name, category, price, image, description, stock, rating) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    const id = insertAndGetId('INSERT INTO products (name, category, price, image, description, stock, rating) VALUES (?, ?, ?, ?, ?, ?, ?)',
       [name, category || null, parseFloat(price), image || '', description || '', stock !== undefined ? parseInt(stock) : 10, rating !== undefined ? parseFloat(rating) : 4.0]);
-    const product = queryOne('SELECT last_insert_rowid() as id');
-    res.status(201).json({ message: 'Product created', id: product.id });
+    res.status(201).json({ message: 'Product created', id });
   } catch (err) {
     res.status(500).json({ error: 'Failed to create product' });
   }
@@ -447,3 +454,5 @@ initDb().then(() => {
     console.log(`Server is running on port ${port}`);
   });
 });
+
+module.exports = app;
