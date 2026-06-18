@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ silent: true });
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -149,6 +149,59 @@ async function initDb() {
     message TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
+  db.run(`CREATE TABLE IF NOT EXISTS site_settings (
+    setting_key TEXT PRIMARY KEY,
+    setting_value TEXT,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+  db.run(`CREATE TABLE IF NOT EXISTS auth_tokens (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    token TEXT NOT NULL UNIQUE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  )`);
+
+  const settingsCnt = queryOne('SELECT COUNT(*) as cnt FROM site_settings');
+  if (settingsCnt.cnt === 0) {
+    runMany(`INSERT INTO site_settings (setting_key, setting_value) VALUES
+      ('site_name', 'Clothify'),
+      ('site_tagline', 'Elevating your daily style with premium quality apparel.'),
+      ('site_logo_type', 'text'),
+      ('site_logo_text', 'Clothify'),
+      ('site_logo_image', ''),
+      ('favicon_svg', '<svg xmlns=''http://www.w3.org/2000/svg'' viewBox=''0 0 24 24'' fill=''none'' stroke=''%23e67e22'' stroke-width=''2'' stroke-linecap=''round'' stroke-linejoin=''round''><path d=''M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z''/><line x1=''7'' y1=''7'' x2=''7.01'' y2=''7''/></svg>'),
+      ('meta_description', 'Discover premium quality apparel at Clothify. Shop the latest collection of modern clothing designed for comfort and timeless style.'),
+      ('meta_keywords', 'clothing, fashion, apparel, modern clothes, sustainable fashion, premium wear'),
+      ('og_image', 'https://images.unsplash.com/photo-1507553532144-b9df5e38c8d1?auto=format&fit=crop&q=80&w=1200'),
+      ('hero_title', 'NEW ARRIVAL'),
+      ('hero_subtitle', 'Discover our latest collection of modern apparel designed for comfort and style.'),
+      ('hero_image', 'https://images.unsplash.com/photo-1612731486606-2614b4d74921?auto=format&fit=crop&q=80&w=1920'),
+      ('about_title', 'Our Story'),
+      ('about_text_1', 'Founded in 2026, Clothify was born out of a passion for minimalist design and sustainable fashion.'),
+      ('about_text_2', 'Our mission is to provide premium apparel that bridges the gap between high-end luxury and everyday versatility.'),
+      ('about_image', 'https://images.unsplash.com/photo-1534126416832-a88fdf2911c2?auto=format&fit=crop&q=80&w=1260'),
+      ('about_stat_1_value', '10k+'),
+      ('about_stat_1_label', 'Happy Customers'),
+      ('about_stat_2_value', '500+'),
+      ('about_stat_2_label', 'Modern Designs'),
+      ('about_stat_3_value', '100%'),
+      ('about_stat_3_label', 'Sustainable'),
+      ('footer_brand', 'Clothify'),
+      ('footer_about', 'Elevating your daily style with premium quality apparel.'),
+      ('footer_facebook', '#'),
+      ('footer_instagram', '#'),
+      ('footer_twitter', '#'),
+      ('footer_pinterest', '#'),
+      ('footer_youtube', '#'),
+      ('newsletter_title', 'Newsletter'),
+      ('newsletter_description', 'Subscribe for exclusive deals and new arrivals'),
+      ('primary_color', '#1a1a1a'),
+      ('accent_color', '#e67e22'),
+      ('cookie_consent_text', 'We use cookies to enhance your experience. By continuing, you agree to our Privacy Policy.'),
+      ('ga_id', 'G-XXXXXXXXXX'),
+      ('copyright_text', '\u00a9 2026 Clothify. All rights reserved.')`);
+  }
 
   const cnt = queryOne('SELECT COUNT(*) as cnt FROM products');
   if (cnt.cnt === 0) {
@@ -283,6 +336,20 @@ app.post('/api/register', (req, res) => {
   }
 });
 
+function requireAdmin(req, res, next) {
+  const auth = req.headers.authorization;
+  if (!auth || !auth.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  const token = auth.slice(7);
+  const found = queryOne('SELECT user_id FROM auth_tokens WHERE token = ?', [token]);
+  if (!found) {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
+  req.userId = found.user_id;
+  next();
+}
+
 app.post('/api/login', (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
@@ -294,7 +361,35 @@ app.post('/api/login', (req, res) => {
     return res.status(401).json({ error: 'Invalid email or password' });
   }
   const token = crypto.randomBytes(32).toString('hex');
+  run('INSERT INTO auth_tokens (user_id, token) VALUES (?, ?)', [user.id, token]);
   res.json({ message: 'Login successful!', user, token });
+});
+
+app.get('/api/settings', (req, res) => {
+  const rows = queryAll('SELECT setting_key, setting_value FROM site_settings');
+  const settings = {};
+  for (const row of rows) {
+    settings[row.setting_key] = row.setting_value;
+  }
+  res.json(settings);
+});
+
+app.put('/api/settings', requireAdmin, (req, res) => {
+  const updates = req.body;
+  if (!updates || typeof updates !== 'object') {
+    return res.status(400).json({ error: 'Invalid settings data' });
+  }
+  try {
+    const validKeys = queryAll('SELECT setting_key FROM site_settings').map(r => r.setting_key);
+    for (const key of Object.keys(updates)) {
+      if (validKeys.includes(key)) {
+        run('UPDATE site_settings SET setting_value = ?, updated_at = CURRENT_TIMESTAMP WHERE setting_key = ?', [String(updates[key]), key]);
+      }
+    }
+    res.json({ message: 'Settings updated successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update settings' });
+  }
 });
 
 app.post('/api/password-reset', (req, res) => {
@@ -433,7 +528,10 @@ app.put('/api/orders/:id', (req, res) => {
 
 // ─── Auth ───────────────────────────────────────────────────────
 
-app.post('/api/logout', (req, res) => {
+app.post('/api/logout', requireAdmin, (req, res) => {
+  const auth = req.headers.authorization;
+  const token = auth.slice(7);
+  run('DELETE FROM auth_tokens WHERE token = ?', [token]);
   res.json({ message: 'Logged out successfully' });
 });
 

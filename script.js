@@ -71,7 +71,7 @@ const translations = {
     }
 };
 
-const API_BASE = '/api';
+const API_BASE = 'http://localhost:5000/api';
 
 let currentLang = localStorage.getItem('clothify_lang') || 'en';
 
@@ -602,7 +602,7 @@ const openProductModal = (product) => {
     thumbs.style.display = 'none';
 
     // Reviews
-    renderReviews(product);
+    fetchReviews(product);
     renderRelatedProducts(product.category, product.id);
     addToRecentlyViewed(product);
     renderRecentlyViewed();
@@ -643,6 +643,33 @@ document.querySelector('.add-to-cart-modal').addEventListener('click', function(
 });
 
 // ---- REVIEWS ----
+const fetchReviews = async (product) => {
+    try {
+        const res = await fetch(`${API_BASE}/reviews/${product.id}`);
+        if (res.ok) {
+            const data = await res.json();
+            if (data.reviews && data.reviews.length) {
+                product.reviews = data.reviews.map(r => ({
+                    rating: r.rating,
+                    text: r.comment || '',
+                    author: r.user_name,
+                    date: r.created_at
+                }));
+            } else if (!product.reviews) {
+                product.reviews = [];
+            }
+        }
+    } catch {}
+    renderReviews(product);
+    const avgRating = product.reviews && product.reviews.length > 0
+        ? (product.reviews.reduce((s, r) => s + r.rating, 0) / product.reviews.length)
+        : (product.rating || 0);
+    const ratingEl = document.getElementById('modal-rating');
+    if (ratingEl) {
+        ratingEl.innerHTML = renderStars(avgRating, '18px') + ` <span style="color:#888;font-size:14px;margin-left:4px;">(${product.reviews ? product.reviews.length : 0})</span>`;
+    }
+};
+
 const renderReviews = (product) => {
     const summary = document.getElementById('reviews-summary');
     const list = document.getElementById('reviews-list');
@@ -691,16 +718,27 @@ document.querySelectorAll('#star-rating-input i').forEach(star => {
     });
 });
 
-document.getElementById('submit-review-btn')?.addEventListener('click', () => {
+document.getElementById('submit-review-btn')?.addEventListener('click', async () => {
     if (!currentModalProduct) return;
     if (!selectedReviewRating) { showNotification('Please select a rating', 'fa-star', '#e74c3c'); return; }
     const text = document.getElementById('review-text').value.trim();
     if (!text) { showNotification('Please write a review', 'fa-pen', '#e74c3c'); return; }
+    const userName = currentUser ? currentUser.name : 'Anonymous';
+    try {
+        const res = await fetch(`${API_BASE}/reviews`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productId: currentModalProduct.id, userName, rating: selectedReviewRating, comment: text })
+        });
+        if (!res.ok) throw new Error('Failed to submit');
+    } catch {
+        showNotification('Could not save review to server', 'fa-exclamation-triangle', '#e67e22');
+    }
     if (!currentModalProduct.reviews) currentModalProduct.reviews = [];
     currentModalProduct.reviews.push({
         rating: selectedReviewRating,
         text: text,
-        author: currentUser ? currentUser.name : 'Anonymous',
+        author: userName,
         date: new Date().toISOString()
     });
     renderReviews(currentModalProduct);
@@ -1091,13 +1129,19 @@ document.getElementById('tracking-btn')?.addEventListener('click', () => {
 window.openOrderTracking = openOrderTracking;
 
 // ---- ACCOUNT ----
+const getInitials = (name) => {
+    return name ? name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) : 'U';
+};
+
 const openAccountDashboard = () => {
     if (!currentUser) {
         openAuthModal();
         switchAuthTab('login');
         return;
     }
-    document.getElementById('account-welcome').textContent = `Welcome, ${currentUser.name}`;
+    const avatarEl = document.getElementById('account-avatar-el');
+    if (avatarEl) avatarEl.textContent = getInitials(currentUser.name);
+    document.getElementById('account-welcome').textContent = currentUser.name;
     document.getElementById('account-email').textContent = currentUser.email;
     document.getElementById('account-name').value = currentUser.name || '';
     document.getElementById('account-email-input').value = currentUser.email || '';
@@ -1106,18 +1150,19 @@ const openAccountDashboard = () => {
     const ordersList = document.getElementById('account-orders-list');
     const userOrders = JSON.parse(localStorage.getItem('clothify_user_orders_' + currentUser.email) || '[]');
     if (!userOrders.length) {
-        ordersList.innerHTML = '<p style="text-align:center;color:#888;padding:30px;">No orders yet.</p>';
+        ordersList.innerHTML = '<p class="empty-state">No orders yet.</p>';
     } else {
         ordersList.innerHTML = '';
         userOrders.slice().reverse().forEach(o => {
             const card = document.createElement('div');
             card.className = 'order-history-card';
+            const statusClass = (o.status || 'pending').toLowerCase().replace(/\s+/g, '_');
             card.innerHTML = `
                 <div class="order-header">
                     <span class="order-id">#${o.id}</span>
-                    <span class="order-status ${o.status || 'pending'}">${(o.status || 'Pending').replace('_',' ')}</span>
+                    <span class="order-status ${statusClass}">${(o.status || 'Pending').replace('_',' ')}</span>
                 </div>
-                <div style="font-size:13px;color:#888;">${new Date(o.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })} | ${o.items ? o.items.length : 0} item(s) | ${formatPrice(o.total || 0)}</div>
+                <div class="order-meta">${new Date(o.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })} &middot; ${o.items ? o.items.length : 0} item(s) &middot; ${formatPrice(o.total || 0)}</div>
             `;
             ordersList.appendChild(card);
         });
@@ -1126,20 +1171,20 @@ const openAccountDashboard = () => {
     // Wishlist
     const wlContainer = document.getElementById('account-wishlist-items');
     if (!wishlist.length) {
-        wlContainer.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">Your wishlist is empty.</p>';
+        wlContainer.innerHTML = '<p class="empty-state">Your wishlist is empty.</p>';
     } else {
         wlContainer.innerHTML = '';
         wishlist.forEach(p => {
             const item = document.createElement('div');
-            item.className = 'order-history-card';
+            item.className = 'wishlist-card';
             item.innerHTML = `
-                <div style="display:flex;gap:12px;align-items:center;">
-                    <img src="${p.image}" alt="${p.name}" style="width:60px;height:70px;object-fit:cover;border-radius:4px;">
-                    <div style="flex:1;">
-                        <strong>${p.name}</strong><br>
-                        <span style="color:var(--accent-color);font-weight:600;">${formatPrice(p.price)}</span>
+                <div class="wishlist-card-inner">
+                    <img src="${p.image}" alt="${p.name}">
+                    <div class="wishlist-info">
+                        <strong>${p.name}</strong>
+                        <span class="wishlist-price">${formatPrice(p.price)}</span>
                     </div>
-                    <button class="btn" style="font-size:12px;padding:8px 16px;" onclick="addToCart(allProducts.find(pr=>pr.id===${p.id}),1,this); showNotification('Added to cart!');">Add to Cart</button>
+                    <button class="btn wishlist-add-btn" onclick="addToCart(allProducts.find(pr=>pr.id===${p.id}),1,this); showNotification('Added to cart!');">Add to Cart</button>
                 </div>
             `;
             wlContainer.appendChild(item);
@@ -1152,12 +1197,12 @@ document.querySelector('.close-account')?.addEventListener('click', () => {
     document.getElementById('account-modal').style.display = 'none';
     document.body.style.overflow = 'auto';
 });
-document.querySelectorAll('.account-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-        document.querySelectorAll('.account-tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
+document.querySelectorAll('.account-nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+        document.querySelectorAll('.account-nav-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
         document.querySelectorAll('.account-pane').forEach(p => p.classList.remove('active'));
-        document.getElementById('account-' + tab.dataset.tab).classList.add('active');
+        document.getElementById('account-' + item.dataset.tab).classList.add('active');
     });
 });
 const logoutAccount = () => {
@@ -1183,6 +1228,21 @@ window.switchAuthTab = (tab) => {
     if (!tabEl) return;
     tabEl.classList.add('active');
     document.getElementById(`auth-${tab}`).classList.add('active');
+
+    const titles = { feedback: ['Feedback', "We'd love to hear from you"], register: ['Create Account', 'Join us today!'], login: ['Welcome Back', 'Sign in to your account'], reset: ['Reset Password', "We'll send you a reset link"] };
+    const [title, subtitle] = titles[tab] || ['', ''];
+    const titleEl = document.getElementById('auth-title');
+    const subEl = document.getElementById('auth-subtitle');
+    if (titleEl) titleEl.textContent = title;
+    if (subEl) subEl.textContent = subtitle;
+};
+
+const togglePassword = (inputId, btn) => {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const isPassword = input.type === 'password';
+    input.type = isPassword ? 'text' : 'password';
+    btn.querySelector('i').className = isPassword ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
 };
 
 const openAuthModal = () => {
@@ -1211,7 +1271,7 @@ feedbackForm.addEventListener('submit', async (e) => {
     btn.innerText = 'Sending...';
     try { await fetch(`${API_BASE}/feedback`, { method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'}, body:JSON.stringify({name,email,message}) }); }
     catch { const f = JSON.parse(localStorage.getItem('clothify_feedback') || '[]'); f.push({name,email,message,date:new Date().toISOString()}); localStorage.setItem('clothify_feedback', JSON.stringify(f)); }
-    feedbackForm.innerHTML = `<div style="text-align:center;padding:30px 20px;"><i class="fa-solid fa-circle-check" style="color:#2ecc71;font-size:50px;margin-bottom:15px;display:block;"></i><h3>Thank You!</h3><p style="color:#888;">We appreciate your feedback.</p><button class="btn" style="margin-top:20px;" onclick="document.getElementById('auth-modal').style.display='none';document.body.style.overflow='auto';">Close</button></div>`;
+    feedbackForm.innerHTML = `<div class="auth-header" style="padding:30px 0;"><div class="auth-icon" style="background:linear-gradient(135deg,#2ecc71,#27ae60);"><i class="fa-solid fa-check"></i></div><h2 style="font-size:20px;font-weight:700;color:#222;margin:0 0 4px;">Thank You!</h2><p style="font-size:13px;color:#999;margin:0;">We appreciate your feedback.</p></div><button class="btn auth-btn" onclick="document.getElementById('auth-modal').style.display='none';document.body.style.overflow='auto';"><i class="fa-regular fa-circle-check"></i> Close</button>`;
 });
 
 // Register
@@ -1378,7 +1438,103 @@ document.getElementById('card-cvv')?.addEventListener('input', (e) => {
     else { msg.textContent = ''; }
 });
 
+// ─── Site Settings (Dynamic Content) ─────────────────────────────
+
+let siteSettings = {};
+
+async function loadSettings() {
+  try {
+    const res = await fetch(`${API_BASE}/settings`);
+    if (!res.ok) throw new Error('Failed to load settings');
+    siteSettings = await res.json();
+    applySettings(siteSettings);
+  } catch (e) {
+    console.warn('Could not load settings, using defaults');
+  }
+}
+
+function applySettings(s) {
+  if (!s || Object.keys(s).length === 0) return;
+
+  const set = (sel, val) => { const el = typeof sel === 'string' ? document.querySelector(sel) : sel; if (el) el.textContent = val; };
+  const setAttr = (sel, attr, val) => { const el = document.querySelector(sel); if (el) el.setAttribute(attr, val); };
+
+  document.title = s.site_name ? `${s.site_name} | Modern Clothes Shop` : document.title;
+  setAttr('meta[name="description"]', 'content', s.meta_description || '');
+  setAttr('meta[name="keywords"]', 'content', s.meta_keywords || '');
+  setAttr('meta[property="og:title"]', 'content', s.site_name ? `${s.site_name} | Modern Clothes Shop` : '');
+  setAttr('meta[property="og:description"]', 'content', s.meta_description || '');
+  setAttr('meta[property="og:image"]', 'content', s.og_image || '');
+
+  if (s.favicon_svg) {
+    let link = document.querySelector('link[rel="icon"]');
+    if (link) link.href = `data:image/svg+xml,${encodeURIComponent(s.favicon_svg)}`;
+  }
+
+  if (s.site_logo_type === 'text') {
+    document.querySelectorAll('.logo').forEach(el => el.textContent = s.site_logo_text || 'Clothify');
+  } else if (s.site_logo_type === 'image' && s.site_logo_image) {
+    document.querySelectorAll('.logo').forEach(el => {
+      el.innerHTML = `<img src="${s.site_logo_image}" alt="${s.site_name || 'Logo'}" style="max-height:40px;">`;
+    });
+  }
+
+  if (s.hero_title) set('[data-i18n="hero_title"]', s.hero_title);
+  if (s.hero_subtitle) set('[data-i18n="hero_subtitle"]', s.hero_subtitle);
+  if (s.hero_image) {
+    const hero = document.getElementById('home');
+    if (hero) hero.style.backgroundImage = `linear-gradient(135deg,rgba(0,0,0,0.65) 0%,rgba(0,0,0,0.25) 100%), url("${s.hero_image}")`;
+  }
+
+  if (s.about_title) set('[data-i18n="about_title"]', s.about_title);
+  if (s.about_text_1) set('[data-i18n="about_p1"]', s.about_text_1);
+  if (s.about_text_2) set('[data-i18n="about_p2"]', s.about_text_2);
+  if (s.about_image) {
+    const img = document.querySelector('.about-image img');
+    if (img) { img.src = s.about_image; img.alt = `About ${s.site_name || 'Clothify'}`; }
+  }
+  if (s.about_stat_1_value) { const el = document.querySelector('.stat-item:nth-child(1) h3'); if (el) el.textContent = s.about_stat_1_value; }
+  if (s.about_stat_1_label) set('[data-i18n="stat_customers"]', s.about_stat_1_label);
+  if (s.about_stat_2_value) { const el = document.querySelector('.stat-item:nth-child(2) h3'); if (el) el.textContent = s.about_stat_2_value; }
+  if (s.about_stat_2_label) set('[data-i18n="stat_designs"]', s.about_stat_2_label);
+  if (s.about_stat_3_value) { const el = document.querySelector('.stat-item:nth-child(3) h3'); if (el) el.textContent = s.about_stat_3_value; }
+  if (s.about_stat_3_label) set('[data-i18n="stat_sustainable"]', s.about_stat_3_label);
+
+  if (s.footer_brand) { document.querySelectorAll('.footer-about h3, .footer-brand').forEach(el => el.textContent = s.footer_brand); }
+  if (s.footer_about) set('[data-i18n="footer_about"]', s.footer_about);
+  if (s.footer_facebook) setAttr('.footer-social-links a:nth-child(1)', 'href', s.footer_facebook);
+  if (s.footer_instagram) setAttr('.footer-social-links a:nth-child(2)', 'href', s.footer_instagram);
+  if (s.footer_twitter) setAttr('.footer-social-links a:nth-child(3)', 'href', s.footer_twitter);
+  if (s.footer_pinterest) setAttr('.footer-social-links a:nth-child(4)', 'href', s.footer_pinterest);
+  if (s.footer_youtube) setAttr('.footer-social-links a:nth-child(5)', 'href', s.footer_youtube);
+
+  if (s.newsletter_title) set('[data-i18n="newsletter_title"]', s.newsletter_title);
+  if (s.newsletter_description) set('.newsletter-desc', s.newsletter_description);
+
+  if (s.cookie_consent_text) {
+    const p = document.querySelector('#cookie-consent p');
+    if (p) p.innerHTML = s.cookie_consent_text.replace(/\n/g, '<br>');
+  }
+
+  if (s.copyright_text) {
+    const el = document.querySelector('.copyright');
+    if (el) el.innerHTML = s.copyright_text;
+  }
+
+  if (s.primary_color || s.accent_color) {
+    const root = document.documentElement;
+    if (s.primary_color) root.style.setProperty('--primary-color', s.primary_color);
+    if (s.accent_color) root.style.setProperty('--accent-color', s.accent_color);
+  }
+
+  if (s.ga_id && s.ga_id !== 'G-XXXXXXXXXX') {
+    const existing = document.querySelector('script[src*="googletagmanager"]');
+    if (existing) existing.src = `https://www.googletagmanager.com/gtag/js?id=${s.ga_id}`;
+  }
+}
+
 // ---- INIT ----
+loadSettings();
 loadProducts();
 fetchCategories();
 switchLanguage(currentLang);

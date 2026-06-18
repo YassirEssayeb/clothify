@@ -246,11 +246,11 @@
             </div>
             <!-- Product Reviews -->
             <div class="product-reviews">
-                <h3 data-i18n="reviews_title">Customer Reviews</h3>
+                <p class="section-title" data-i18n="reviews_title">Customer Reviews</p>
                 <div class="reviews-summary" id="reviews-summary"></div>
                 <div class="reviews-list" id="reviews-list"></div>
                 <div class="review-form">
-                    <h4 data-i18n="write_review">Write a Review</h4>
+                    <p class="section-title" data-i18n="write_review">Write a Review</p>
                     <div class="star-rating-input" id="star-rating-input">
                         <i class="fa-regular fa-star" data-star="1"></i>
                         <i class="fa-regular fa-star" data-star="2"></i>
@@ -263,7 +263,7 @@
                 </div>
             </div>
             <div class="related-products">
-                <h3 data-i18n="related_title">You May Also Like</h3>
+                <p class="section-title" data-i18n="related_title">You May Also Like</p>
                 <div class="related-grid" id="related-grid"></div>
             </div>
         </div>
@@ -469,66 +469,97 @@
         <div class="modal-content auth-modal-content">
             <span class="close-auth close-modal">&times;</span>
             <div class="auth-container">
-                <div class="auth-tabs">
-                    <button class="auth-tab active" onclick="switchAuthTab('feedback')" data-i18n="feedback_title">Feedback</button>
-                    <button class="auth-tab" onclick="switchAuthTab('register')" data-i18n="register_title">Register</button>
-                    <button class="auth-tab" onclick="switchAuthTab('login')">Login</button>
-                    <button class="auth-tab" onclick="switchAuthTab('reset')">Reset Password</button>
+                <div class="auth-header">
+                    <div class="auth-icon"><i class="fa-regular fa-circle-user"></i></div>
+                    <h2 id="auth-title" data-i18n="feedback_title">Feedback</h2>
+                    <p id="auth-subtitle" class="auth-subtitle">We'd love to hear from you</p>
                 </div>
-                <div id="auth-feedback" class="auth-pane active">
+                <div class="auth-tabs">
+                    <button class="auth-tab active" onclick="switchAuthTab('feedback')"><i class="fa-regular fa-comment"></i> Feedback</button>
+                    <button class="auth-tab" onclick="switchAuthTab('register')"><i class="fa-regular fa-user-plus"></i> Register</button>
+                    <button class="auth-tab" onclick="switchAuthTab('login')"><i class="fa-solid fa-key"></i> Sign In</button>
+                    <button class="auth-tab" onclick="switchAuthTab('reset')"><i class="fa-regular fa-envelope"></i> Reset</button>
+                </div>
+                <!-- Feedback -->
+                <div id="auth-feedback" class="auth-pane">
                     <form id="feedback-form">
                         <div class="form-group">
-                            <label for="feedback-name" data-i18n="feedback_name_label">Your Name</label>
-                            <input type="text" id="feedback-name" required placeholder="John Doe">
+                            <label for="feedback-name">Your Name</label>
+                            <div class="input-wrap"><i class="fa-regular fa-user"></i><input type="text" id="feedback-name" required placeholder="John Doe"></div>
                         </div>
                         <div class="form-group">
-                            <label for="feedback-email" data-i18n="label_email">Email Address</label>
-                            <input type="email" id="feedback-email" required placeholder="john@example.com">
+                            <label for="feedback-email">Email Address</label>
+                            <div class="input-wrap"><i class="fa-regular fa-envelope"></i><input type="email" id="feedback-email" required placeholder="john@example.com"></div>
                         </div>
                         <div class="form-group">
-                            <label for="feedback-message" data-i18n="feedback_message_label">Your Message</label>
-                            <textarea id="feedback-message" required placeholder="Tell us what you think..." style="height: 100px; resize: none;"></textarea>
+                            <label for="feedback-message">Your Message</label>
+                            <div class="input-wrap textarea-wrap"><i class="fa-regular fa-pen-to-square"></i><textarea id="feedback-message" required placeholder="Tell us what you think..."></textarea></div>
                         </div>
-                        <button type="submit" class="btn" style="width: 100%;" data-i18n="feedback_btn">Send Feedback</button>
+                        <button type="submit" class="btn auth-btn"><i class="fa-solid fa-paper-plane"></i> Send Feedback</button>
                     </form>
                 </div>
+                <!-- Register -->
                 <div id="auth-register" class="auth-pane">
                     <form id="register-form">
+                        <div class="social-btns">
+                            <button type="button" class="social-btn google" onclick="showNotification('Google sign-in coming soon','fa-brands fa-google','#4285f4')"><i class="fa-brands fa-google"></i> Google</button>
+                            <button type="button" class="social-btn apple" onclick="showNotification('Apple sign-in coming soon','fa-brands fa-apple','#000')"><i class="fa-brands fa-apple"></i> Apple</button>
+                        </div>
+                        <div class="divider"><span>or continue with email</span></div>
                         <div class="form-group">
-                            <label for="reg-name" data-i18n="feedback_name_label">Full Name</label>
-                            <input type="text" id="reg-name" required placeholder="John Doe">
+                            <label for="reg-name">Full Name</label>
+                            <div class="input-wrap"><i class="fa-regular fa-user"></i><input type="text" id="reg-name" required placeholder="John Doe"></div>
                         </div>
                         <div class="form-group">
-                            <label for="reg-email" data-i18n="label_email">Email Address</label>
-                            <input type="email" id="reg-email" required placeholder="john@example.com">
+                            <label for="reg-email">Email Address</label>
+                            <div class="input-wrap"><i class="fa-regular fa-envelope"></i><input type="email" id="reg-email" required placeholder="john@example.com"></div>
                         </div>
                         <div class="form-group">
                             <label for="reg-password">Password</label>
-                            <input type="password" id="reg-password" required placeholder="Min 6 characters" minlength="6" autocomplete="new-password">
+                            <div class="input-wrap"><i class="fa-solid fa-lock"></i><input type="password" id="reg-password" required placeholder="Min 6 characters" minlength="6" autocomplete="new-password"><button type="button" class="pw-toggle" onclick="togglePassword('reg-password',this)"><i class="fa-regular fa-eye"></i></button></div>
                         </div>
-                        <button type="submit" class="btn" style="width: 100%;">Create Account</button>
+                        <button type="submit" class="btn auth-btn"><i class="fa-regular fa-circle-check"></i> Create Account</button>
+                        <p class="auth-switch">Already have an account? <a href="#" onclick="switchAuthTab('login');return false;">Sign In</a></p>
                     </form>
                 </div>
+                <!-- Login -->
                 <div id="auth-login" class="auth-pane">
                     <form id="login-form">
+                        <div class="social-btns">
+                            <button type="button" class="social-btn google" onclick="showNotification('Google sign-in coming soon','fa-brands fa-google','#4285f4')"><i class="fa-brands fa-google"></i> Google</button>
+                            <button type="button" class="social-btn apple" onclick="showNotification('Apple sign-in coming soon','fa-brands fa-apple','#000')"><i class="fa-brands fa-apple"></i> Apple</button>
+                        </div>
+                        <div class="divider"><span>or continue with email</span></div>
                         <div class="form-group">
                             <label for="login-email">Email Address</label>
-                            <input type="email" id="login-email" required placeholder="john@example.com">
+                            <div class="input-wrap"><i class="fa-regular fa-envelope"></i><input type="email" id="login-email" required placeholder="john@example.com"></div>
                         </div>
                         <div class="form-group">
-                            <label for="login-password">Password</label>
-                            <input type="password" id="login-password" required placeholder="Enter password">
+                            <div class="label-row">
+                                <label for="login-password">Password</label>
+                                <a href="#" class="forgot-link" onclick="switchAuthTab('reset');return false;">Forgot?</a>
+                            </div>
+                            <div class="input-wrap"><i class="fa-solid fa-lock"></i><input type="password" id="login-password" required placeholder="Enter password"><button type="button" class="pw-toggle" onclick="togglePassword('login-password',this)"><i class="fa-regular fa-eye"></i></button></div>
                         </div>
-                        <button type="submit" class="btn" style="width: 100%;">Sign In</button>
+                        <div class="form-group remember-row">
+                            <label class="remember-label">
+                                <input type="checkbox" id="remember-me" checked> <span>Remember me</span>
+                            </label>
+                        </div>
+                        <button type="submit" class="btn auth-btn"><i class="fa-solid fa-key"></i> Sign In</button>
+                        <p class="auth-switch">Don't have an account? <a href="#" onclick="switchAuthTab('register');return false;">Create one</a></p>
                     </form>
                 </div>
+                <!-- Reset -->
                 <div id="auth-reset" class="auth-pane">
                     <form id="reset-form">
+                        <p style="font-size:13px;color:#888;margin:0 0 18px;text-align:center;">Enter your email and we'll send you a link to reset your password.</p>
                         <div class="form-group">
                             <label for="reset-email">Email Address</label>
-                            <input type="email" id="reset-email" required placeholder="john@example.com">
+                            <div class="input-wrap"><i class="fa-regular fa-envelope"></i><input type="email" id="reset-email" required placeholder="john@example.com"></div>
                         </div>
-                        <button type="submit" class="btn" style="width: 100%;">Send Reset Link</button>
+                        <button type="submit" class="btn auth-btn"><i class="fa-solid fa-paper-plane"></i> Send Reset Link</button>
+                        <p class="auth-switch"><a href="#" onclick="switchAuthTab('login');return false;">Back to Sign In</a></p>
                     </form>
                 </div>
             </div>
@@ -540,36 +571,53 @@
         <div class="modal-content account-modal-content">
             <span class="close-modal close-account">&times;</span>
             <div class="account-dashboard">
-                <div class="account-header">
-                    <div class="account-avatar"><i class="fa-regular fa-user"></i></div>
-                    <h2 id="account-welcome">Welcome</h2>
-                    <p id="account-email" style="color:#888;"></p>
-                </div>
-                <div class="account-tabs">
-                    <button class="account-tab active" data-tab="orders">My Orders</button>
-                    <button class="account-tab" data-tab="details">Account Details</button>
-                    <button class="account-tab" data-tab="wishlist-account">Wishlist</button>
-                </div>
-                <div class="account-pane active" id="account-orders">
-                    <div id="account-orders-list"><p style="text-align:center;color:#888;padding:30px;">No orders yet.</p></div>
-                </div>
-                <div class="account-pane" id="account-details">
-                    <form id="account-details-form">
-                        <div class="form-group">
-                            <label for="account-name">Full Name</label>
-                            <input type="text" id="account-name">
+                <div class="account-sidebar">
+                    <div class="account-user">
+                        <div class="account-avatar" id="account-avatar-el">U</div>
+                        <div>
+                            <h3 id="account-welcome">Welcome</h3>
+                            <p id="account-email"></p>
                         </div>
-                        <div class="form-group">
-                            <label for="account-email-input">Email Address</label>
-                            <input type="email" id="account-email-input">
-                        </div>
-                        <button type="submit" class="btn">Save Changes</button>
-                    </form>
+                    </div>
+                    <nav class="account-nav">
+                        <button class="account-nav-item active" data-tab="orders">
+                            <i class="fa-solid fa-box"></i> My Orders
+                        </button>
+                        <button class="account-nav-item" data-tab="details">
+                            <i class="fa-solid fa-user-gear"></i> Account Details
+                        </button>
+                        <button class="account-nav-item" data-tab="wishlist-account">
+                            <i class="fa-solid fa-heart"></i> Wishlist
+                        </button>
+                    </nav>
+                    <button class="account-logout-btn" onclick="logoutAccount()">
+                        <i class="fa-solid fa-right-from-bracket"></i> Logout
+                    </button>
                 </div>
-                <div class="account-pane" id="account-wishlist-pane">
-                    <div id="account-wishlist-items"></div>
+                <div class="account-content">
+                    <div class="account-pane active" id="account-orders">
+                        <h2 class="pane-title">My Orders</h2>
+                        <div id="account-orders-list"><p class="empty-state">No orders yet.</p></div>
+                    </div>
+                    <div class="account-pane" id="account-details">
+                        <h2 class="pane-title">Account Details</h2>
+                        <form id="account-details-form" class="account-form">
+                            <div class="form-group">
+                                <label for="account-name">Full Name</label>
+                                <input type="text" id="account-name" placeholder="Enter your full name">
+                            </div>
+                            <div class="form-group">
+                                <label for="account-email-input">Email Address</label>
+                                <input type="email" id="account-email-input" placeholder="Enter your email">
+                            </div>
+                            <button type="submit" class="btn account-save-btn">Save Changes</button>
+                        </form>
+                    </div>
+                    <div class="account-pane" id="account-wishlist-pane">
+                        <h2 class="pane-title">Wishlist</h2>
+                        <div id="account-wishlist-items"></div>
+                    </div>
                 </div>
-                <button class="btn logout-btn" onclick="logoutAccount()">Logout</button>
             </div>
         </div>
     </div>

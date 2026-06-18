@@ -215,6 +215,129 @@
             margin-bottom: 16px;
             display: block;
         }
+        .settings-group {
+            background: #fff;
+            border-radius: 6px;
+            padding: 20px 24px;
+            margin-bottom: 14px;
+            border: 1px solid #eef0f2;
+        }
+        .settings-group h3 {
+            margin: 0 0 14px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            color: #888;
+            font-weight: 600;
+        }
+        .settings-group h3 i { margin-right: 6px; color: #bbb; font-size: 12px; }
+        .settings-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 10px;
+        }
+        .settings-row:last-child { margin-bottom: 0; }
+        .settings-row.full { grid-template-columns: 1fr; }
+        .settings-form .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: #666;
+            margin-bottom: 3px;
+            letter-spacing: .2px;
+        }
+        .settings-form .form-group input,
+        .settings-form .form-group textarea,
+        .settings-form .form-group select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #e2e5e8;
+            border-radius: 4px;
+            font-size: 13px;
+            font-family: 'Montserrat', sans-serif;
+            box-sizing: border-box;
+            background: #fafbfc;
+            transition: border .2s, background .2s;
+        }
+        .settings-form .form-group input:focus,
+        .settings-form .form-group textarea:focus,
+        .settings-form .form-group select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            background: #fff;
+        }
+        .settings-form .form-group textarea { resize: vertical; }
+        .color-picker-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .color-picker-row input[type="color"] {
+            width: 36px;
+            height: 36px;
+            padding: 1px;
+            border: 1px solid #e2e5e8;
+            border-radius: 4px;
+            cursor: pointer;
+            background: none;
+        }
+        .color-picker-row input[type="text"] { flex: 1; font-family: monospace; font-size: 12px; }
+        .preview-img {
+            display: flex;
+            align-items: flex-end;
+        }
+        .preview-img img {
+            border-radius: 4px;
+            border: 1px solid #eef0f2;
+            max-height: 48px;
+            margin-top: 0;
+        }
+        .settings-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .settings-bar h2 { margin: 0; font-size: 18px; }
+        .settings-submit {
+            padding: 9px 28px;
+            background: var(--accent-color);
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            transition: background .2s;
+            float: right;
+            margin-top: -44px;
+        }
+        .settings-submit:hover { background: #d35400; }
+        .settings-submit i { margin-right: 6px; }
+        .settings-feedback {
+            padding: 10px 14px;
+            border-radius: 4px;
+            margin-bottom: 14px;
+            display: none;
+            font-size: 13px;
+        }
+        .settings-feedback.success { display: block; background: #e6f7ee; color: #0b6e3a; border: 1px solid #b8e6cc; }
+        .settings-feedback.error { display: block; background: #fde8e8; color: #b91c1c; border: 1px solid #f5c2c2; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+        .stats-grid .form-group { margin-bottom: 0; }
+        .stats-grid input { font-size: 12px; padding: 6px 8px; }
+        @media (max-width: 768px) {
+            .settings-row { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+        }
     </style>
 </head>
 <body>
@@ -231,6 +354,7 @@
         <div class="admin-tabs">
             <button class="admin-tab active" onclick="switchTab('products')">Products</button>
             <button class="admin-tab" onclick="switchTab('orders')">Orders</button>
+            <button class="admin-tab" onclick="switchTab('settings')">Settings</button>
         </div>
 
         <!-- Products Section -->
@@ -262,6 +386,128 @@
             <div id="orders-list">
                 <!-- Orders will be loaded here -->
             </div>
+        </div>
+        <!-- Settings Section -->
+        <div id="section-settings" class="admin-section">
+            <div class="settings-bar">
+                <h2>Site Settings</h2>
+            </div>
+            <div id="settings-feedback" class="settings-feedback"></div>
+            <form id="settings-form" class="settings-form">
+                <button type="submit" class="settings-submit"><i class="fa-solid fa-save"></i> Save All Settings</button>
+                <div class="settings-group">
+                    <h3><i class="fa-solid fa-globe"></i> General</h3>
+                    <div class="settings-row">
+                        <div class="form-group"><label>Site Name</label><input type="text" id="set-site_name"></div>
+                        <div class="form-group"><label>Tagline</label><input type="text" id="set-site_tagline"></div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="form-group">
+                            <label>Logo</label>
+                            <select id="set-site_logo_type">
+                                <option value="text">Text Logo</option>
+                                <option value="image">Image Logo</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="logo-text-group"><label>Logo Text</label><input type="text" id="set-site_logo_text"></div>
+                        <div class="form-group" id="logo-image-group" style="display:none;"><label>Logo Image URL</label><input type="text" id="set-site_logo_image" placeholder="https://..."></div>
+                    </div>
+                    <div class="settings-row full">
+                        <div class="form-group"><label>Meta Description</label><textarea id="set-meta_description" rows="2"></textarea></div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="form-group"><label>Meta Keywords</label><input type="text" id="set-meta_keywords"></div>
+                        <div class="form-group"><label>OG Image URL</label><input type="text" id="set-og_image"></div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="form-group"><label>GA4 ID</label><input type="text" id="set-ga_id" placeholder="G-XXXXXXXXXX"></div>
+                        <div class="form-group"><label>Favicon SVG</label><textarea id="set-favicon_svg" rows="2"></textarea></div>
+                    </div>
+                    <div class="settings-row full">
+                        <div class="form-group"><label>Cookie Consent Text</label><textarea id="set-cookie_consent_text" rows="2"></textarea></div>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3><i class="fa-solid fa-images"></i> Hero</h3>
+                    <div class="settings-row">
+                        <div class="form-group"><label>Title</label><input type="text" id="set-hero_title"></div>
+                        <div class="form-group"><label>Subtitle</label><input type="text" id="set-hero_subtitle"></div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="form-group"><label>Background Image URL</label><input type="text" id="set-hero_image"></div>
+                        <div class="preview-img"><img id="preview-hero_image" src="" style="max-height:36px;display:none;"></div>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3><i class="fa-solid fa-book-open"></i> About</h3>
+                    <div class="settings-row">
+                        <div class="form-group"><label>Title</label><input type="text" id="set-about_title"></div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="form-group"><label>Text 1</label><textarea id="set-about_text_1" rows="2"></textarea></div>
+                        <div class="form-group"><label>Text 2</label><textarea id="set-about_text_2" rows="2"></textarea></div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="form-group"><label>Image URL</label><input type="text" id="set-about_image"></div>
+                        <div class="preview-img"><img id="preview-about_image" src="" style="max-height:36px;display:none;"></div>
+                    </div>
+                    <div class="form-group" style="margin-bottom:6px;"><label style="font-size:12px;font-weight:500;color:#666;letter-spacing:.2px;">Stats</label></div>
+                    <div class="stats-grid">
+                        <div class="form-group"><label>Value 1</label><input type="text" id="set-about_stat_1_value"></div>
+                        <div class="form-group"><label>Label 1</label><input type="text" id="set-about_stat_1_label" placeholder="Happy Customers"></div>
+                        <div class="form-group"><label>Value 2</label><input type="text" id="set-about_stat_2_value"></div>
+                        <div class="form-group"><label>Label 2</label><input type="text" id="set-about_stat_2_label" placeholder="Modern Designs"></div>
+                        <div class="form-group"><label>Value 3</label><input type="text" id="set-about_stat_3_value"></div>
+                        <div class="form-group"><label>Label 3</label><input type="text" id="set-about_stat_3_label" placeholder="Sustainable"></div>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3><i class="fa-solid fa-palette"></i> Colors</h3>
+                    <div class="settings-row">
+                        <div class="form-group">
+                            <label>Primary</label>
+                            <div class="color-picker-row">
+                                <input type="color" id="set-primary_color" value="#1a1a1a">
+                                <input type="text" id="set-primary_color_text" placeholder="#1a1a1a">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Accent</label>
+                            <div class="color-picker-row">
+                                <input type="color" id="set-accent_color" value="#e67e22">
+                                <input type="text" id="set-accent_color_text" placeholder="#e67e22">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3><i class="fa-solid fa-link"></i> Footer</h3>
+                    <div class="settings-row">
+                        <div class="form-group"><label>Brand Name</label><input type="text" id="set-footer_brand"></div>
+                        <div class="form-group"><label>About Text</label><textarea id="set-footer_about" rows="2"></textarea></div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="form-group"><label>Facebook</label><input type="text" id="set-footer_facebook" placeholder="https://facebook.com/..."></div>
+                        <div class="form-group"><label>Instagram</label><input type="text" id="set-footer_instagram" placeholder="https://instagram.com/..."></div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="form-group"><label>Twitter / X</label><input type="text" id="set-footer_twitter" placeholder="https://twitter.com/..."></div>
+                        <div class="form-group"><label>Pinterest</label><input type="text" id="set-footer_pinterest" placeholder="https://pinterest.com/..."></div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="form-group"><label>YouTube</label><input type="text" id="set-footer_youtube" placeholder="https://youtube.com/..."></div>
+                        <div class="form-group"><label>Newsletter Title</label><input type="text" id="set-newsletter_title"></div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="form-group"><label>Newsletter Description</label><input type="text" id="set-newsletter_description"></div>
+                        <div class="form-group"><label>Copyright</label><input type="text" id="set-copyright_text"></div>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -326,6 +572,7 @@
             document.querySelector(`.admin-tab[onclick*="${tab}"]`).classList.add('active');
             document.getElementById(`section-${tab}`).classList.add('active');
             if (tab === 'orders') fetchOrders();
+            if (tab === 'settings') fetchSettings();
         }
 
         // Fetch Products
@@ -554,6 +801,162 @@
             localStorage.removeItem('clothify_token');
             localStorage.removeItem('clothify_admin');
             window.location.href = 'login.html';
+        }
+
+        // ─── Settings Management ────────────────────────────────────
+
+        const settingsKeyMap = {
+            'site_name': 'set-site_name',
+            'site_tagline': 'set-site_tagline',
+            'site_logo_type': 'set-site_logo_type',
+            'site_logo_text': 'set-site_logo_text',
+            'site_logo_image': 'set-site_logo_image',
+            'favicon_svg': 'set-favicon_svg',
+            'meta_description': 'set-meta_description',
+            'meta_keywords': 'set-meta_keywords',
+            'og_image': 'set-og_image',
+            'hero_title': 'set-hero_title',
+            'hero_subtitle': 'set-hero_subtitle',
+            'hero_image': 'set-hero_image',
+            'about_title': 'set-about_title',
+            'about_text_1': 'set-about_text_1',
+            'about_text_2': 'set-about_text_2',
+            'about_image': 'set-about_image',
+            'about_stat_1_value': 'set-about_stat_1_value',
+            'about_stat_1_label': 'set-about_stat_1_label',
+            'about_stat_2_value': 'set-about_stat_2_value',
+            'about_stat_2_label': 'set-about_stat_2_label',
+            'about_stat_3_value': 'set-about_stat_3_value',
+            'about_stat_3_label': 'set-about_stat_3_label',
+            'footer_brand': 'set-footer_brand',
+            'footer_about': 'set-footer_about',
+            'footer_facebook': 'set-footer_facebook',
+            'footer_instagram': 'set-footer_instagram',
+            'footer_twitter': 'set-footer_twitter',
+            'footer_pinterest': 'set-footer_pinterest',
+            'footer_youtube': 'set-footer_youtube',
+            'newsletter_title': 'set-newsletter_title',
+            'newsletter_description': 'set-newsletter_description',
+            'primary_color': 'set-primary_color',
+            'accent_color': 'set-accent_color',
+            'cookie_consent_text': 'set-cookie_consent_text',
+            'ga_id': 'set-ga_id',
+            'copyright_text': 'set-copyright_text'
+        };
+
+        async function fetchSettings() {
+            try {
+                const res = await fetch(`${API_URL}/settings`);
+                if (!res.ok) throw new Error('Failed to fetch settings');
+                const settings = await res.json();
+                populateSettings(settings);
+            } catch (e) {
+                console.error('Error loading settings:', e);
+            }
+        }
+
+        function populateSettings(settings) {
+            for (const [key, value] of Object.entries(settings)) {
+                const elId = settingsKeyMap[key];
+                if (!elId) continue;
+                const el = document.getElementById(elId);
+                if (!el) continue;
+                el.value = value;
+                if (key === 'primary_color') {
+                    document.getElementById('set-primary_color_text').value = value;
+                }
+                if (key === 'accent_color') {
+                    document.getElementById('set-accent_color_text').value = value;
+                }
+                if (key === 'hero_image' && value) {
+                    const preview = document.getElementById('preview-hero_image');
+                    if (preview) { preview.src = value; preview.style.display = 'block'; }
+                }
+                if (key === 'about_image' && value) {
+                    const preview = document.getElementById('preview-about_image');
+                    if (preview) { preview.src = value; preview.style.display = 'block'; }
+                }
+            }
+            toggleLogoType();
+        }
+
+        function toggleLogoType() {
+            const sel = document.getElementById('set-site_logo_type');
+            if (!sel) return;
+            const type = sel.value;
+            const lt = document.getElementById('logo-text-group');
+            const li = document.getElementById('logo-image-group');
+            if (lt) lt.style.display = type === 'text' ? 'block' : 'none';
+            if (li) li.style.display = type === 'image' ? 'block' : 'none';
+        }
+
+        const logoTypeEl = document.getElementById('set-site_logo_type');
+        if (logoTypeEl) logoTypeEl.addEventListener('change', toggleLogoType);
+
+        ['primary_color', 'accent_color'].forEach(key => {
+            const colorInput = document.getElementById(`set-${key}`);
+            const textInput = document.getElementById(`set-${key}_text`);
+            if (colorInput && textInput) {
+                colorInput.addEventListener('input', () => { textInput.value = colorInput.value; });
+                textInput.addEventListener('input', () => {
+                    if (/^#[0-9a-f]{6}$/i.test(textInput.value)) colorInput.value = textInput.value;
+                });
+            }
+        });
+
+        ['hero_image', 'about_image'].forEach(key => {
+            const input = document.getElementById(`set-${key}`);
+            const preview = document.getElementById(`preview-${key}`);
+            if (input && preview) {
+                input.addEventListener('blur', () => {
+                    if (input.value) { preview.src = input.value; preview.style.display = 'block'; }
+                    else { preview.style.display = 'none'; }
+                });
+            }
+        });
+
+        const settingsForm = document.getElementById('settings-form');
+        if (settingsForm) {
+            settingsForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const feedback = document.getElementById('settings-feedback');
+                if (!feedback) return;
+                const data = {};
+                for (const [key, elId] of Object.entries(settingsKeyMap)) {
+                    const el = document.getElementById(elId);
+                    data[key] = el ? el.value : '';
+                }
+                try {
+                    const res = await fetch(`${API_URL}/settings`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    if (res.ok) {
+                        feedback.className = 'settings-feedback success';
+                        feedback.textContent = 'All settings saved successfully!';
+                        feedback.style.display = 'block';
+                        setTimeout(() => { feedback.style.display = 'none'; }, 3000);
+                    } else if (res.status === 401) {
+                        localStorage.removeItem('clothify_token');
+                        localStorage.removeItem('clothify_admin');
+                        window.location.href = 'login.html';
+                    } else {
+                        const err = await res.json();
+                        feedback.className = 'settings-feedback error';
+                        feedback.textContent = 'Error: ' + (err.error || 'Failed to save');
+                        feedback.style.display = 'block';
+                    }
+                } catch (err) {
+                    feedback.className = 'settings-feedback error';
+                    feedback.textContent = 'Failed to connect to server';
+                    feedback.style.display = 'block';
+                }
+            });
         }
 
         // Initialize
