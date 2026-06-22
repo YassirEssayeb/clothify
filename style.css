@@ -237,15 +237,6 @@ img { max-width:100%; height:auto; }
 /* Modal Rating */
 .modal-rating { display:flex; align-items:center; gap:4px; margin-bottom:14px; }
 
-/* Thumbnails */
-.modal-thumbnails { display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
-.thumb-img {
-    width:64px; height:64px; object-fit:cover; border-radius:6px;
-    cursor:pointer; opacity:0.6; border:2px solid transparent; transition:var(--transition);
-}
-.thumb-img:hover { opacity:0.8; }
-.thumb-img.active { opacity:1; border-color:var(--accent-color); }
-
 .wishlist-filter-btn {
     display:flex; align-items:center; gap:6px; padding:8px 16px;
     border:2px solid var(--light-gray); border-radius:6px;
@@ -818,7 +809,132 @@ html[dir="rtl"] .lang-switcher { margin-right:0; margin-left:15px; }
 }
 .mobile-menu-categories ul li a:hover { background:var(--accent-color); color:#fff; }
 
-/* ========== Responsive ========== */
+/* ========== Image Lightbox / Zoom ========== */
+.image-lightbox {
+    display:none; position:fixed; z-index:9999; left:0; top:0;
+    width:100%; height:100%; background-color:rgba(0,0,0,0.95);
+    backdrop-filter:blur(10px); cursor:zoom-out;
+}
+.image-lightbox.active { display:flex; align-items:center; justify-content:center; }
+.image-lightbox img {
+    max-width:90%; max-height:90vh; object-fit:contain;
+    border-radius:8px; box-shadow:0 20px 60px rgba(0,0,0,0.5);
+    animation:lightboxIn 0.3s ease-out;
+}
+@keyframes lightboxIn { from{opacity:0;transform:scale(0.9)} to{opacity:1;transform:scale(1)} }
+.image-lightbox .lightbox-close {
+    position:absolute; top:20px; right:30px; font-size:40px;
+    color:#fff; cursor:pointer; transition:transform 0.3s; z-index:10000;
+}
+.image-lightbox .lightbox-close:hover { transform:rotate(90deg); }
+.image-lightbox .lightbox-nav {
+    position:absolute; top:50%; transform:translateY(-50%);
+    font-size:50px; color:rgba(255,255,255,0.7); cursor:pointer;
+    padding:20px; transition:color 0.3s; user-select:none; z-index:10000;
+}
+.image-lightbox .lightbox-nav:hover { color:#fff; }
+.image-lightbox .lightbox-prev { left:20px; }
+.image-lightbox .lightbox-next { right:20px; }
+.image-lightbox .lightbox-counter {
+    position:absolute; bottom:30px; left:50%; transform:translateX(-50%);
+    color:rgba(255,255,255,0.6); font-size:14px; letter-spacing:2px;
+}
+
+/* Product Image Zoom Cursor */
+.product-image-wrapper .product-image { cursor:zoom-in; }
+.modal-image img { cursor:zoom-in; }
+
+/* ========== Policy Modals (Return/Privacy) ========== */
+.policy-modal-content { max-width:700px !important; padding:40px; }
+.policy-modal-content h2 { margin-bottom:20px; text-align:center; font-size:28px; }
+.policy-modal-content h3 { font-size:18px; margin:24px 0 10px; color:var(--accent-color); }
+.policy-modal-content p, .policy-modal-content li { font-size:14px; line-height:1.8; color:#555; }
+.policy-modal-content ul { padding-left:20px; margin-bottom:12px; }
+.policy-modal-content ul li { margin-bottom:6px; }
+
+/* ========== Abandoned Cart Banner ========== */
+.abandoned-cart-banner {
+    display:none; background:linear-gradient(135deg,#667eea,#764ba2);
+    color:#fff; padding:12px 24px; align-items:center;
+    justify-content:space-between; gap:16px; font-size:14px;
+    position:relative; z-index:999;
+}
+.abandoned-cart-banner.show { display:flex; flex-wrap:wrap; }
+.abandoned-cart-banner .btn {
+    background:#fff; color:#764ba2; font-size:12px;
+    padding:8px 20px; text-transform:none; white-space:nowrap;
+}
+.abandoned-cart-banner .btn:hover { background:#f0f0f0; }
+.abandoned-cart-banner .close-abandoned {
+    color:rgba(255,255,255,0.7); font-size:20px; cursor:pointer;
+    transition:color 0.3s;
+}
+.abandoned-cart-banner .close-abandoned:hover { color:#fff; }
+
+/* ========== Admin Reports ========== */
+.reports-grid {
+    display:grid; grid-template-columns:1fr 1fr 1fr 1fr;
+    gap:16px; margin-bottom:30px;
+}
+.report-card {
+    background:#fff; border-radius:10px; padding:20px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.06);
+    text-align:center; border-left:4px solid var(--accent-color);
+}
+.report-card h3 { font-size:13px; color:#888; margin:0 0 8px; text-transform:uppercase; letter-spacing:0.5px; }
+.report-card .report-value { font-size:28px; font-weight:700; color:var(--primary-color); }
+.report-card .report-sub { font-size:12px; color:#aaa; margin-top:4px; }
+.report-card:nth-child(1) { border-left-color:#3498db; }
+.report-card:nth-child(2) { border-left-color:#2ecc71; }
+.report-card:nth-child(3) { border-left-color:#e67e22; }
+.report-card:nth-child(4) { border-left-color:#e74c3c; }
+
+.chart-container {
+    background:#fff; border-radius:10px; padding:20px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.06); margin-bottom:20px;
+}
+.chart-container h3 { font-size:15px; margin:0 0 16px; color:#555; }
+.chart-row {
+    display:grid; grid-template-columns:1fr 1fr; gap:20px;
+}
+.bar-chart { display:flex; align-items:flex-end; gap:8px; height:200px; padding-top:20px; }
+.bar-item { flex:1; display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; }
+.bar-fill {
+    width:100%; max-width:40px; border-radius:4px 4px 0 0;
+    background:linear-gradient(to top, var(--accent-color), #ffb380);
+    transition:height 0.6s ease; min-height:2px; position:relative;
+    cursor:pointer;
+}
+.bar-fill:hover { opacity:0.8; }
+.bar-label {
+    font-size:10px; color:#888; margin-top:6px;
+    text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    max-width:60px;
+}
+.bar-fill .bar-tooltip {
+    position:absolute; top:-24px; left:50%; transform:translateX(-50%);
+    background:var(--primary-color); color:#fff; font-size:11px;
+    padding:3px 8px; border-radius:4px; white-space:nowrap;
+    opacity:0; transition:opacity 0.3s; pointer-events:none;
+}
+.bar-fill:hover .bar-tooltip { opacity:1; }
+
+@media (max-width:768px) {
+    .reports-grid { grid-template-columns:1fr 1fr; }
+    .chart-row { grid-template-columns:1fr; }
+    .policy-modal-content { padding:24px; }
+}
+
+/* ========== Color Variants ========== */
+.color-variants { display:flex; gap:8px; margin:12px 0; flex-wrap:wrap; }
+.color-swatch {
+    width:28px; height:28px; border-radius:50%; border:2px solid var(--light-gray);
+    cursor:pointer; transition:var(--transition); position:relative;
+}
+.color-swatch:hover { transform:scale(1.15); }
+.color-swatch.active { border-color:var(--primary-color); box-shadow:0 0 0 2px #fff, 0 0 0 4px var(--primary-color); }
+.color-picker-section { margin:12px 0; }
+.color-picker-section label { font-size:14px; font-weight:500; color:#666; display:block; margin-bottom:6px; }
 @media (max-width:992px) {
     .about-grid { grid-template-columns:1fr; gap:40px; }
     .about-image img { height:400px; }

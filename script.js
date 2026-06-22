@@ -74,6 +74,8 @@ const translations = {
 const API_BASE = 'http://localhost:5000/api';
 
 let currentLang = localStorage.getItem('clothify_lang') || 'en';
+const sessionId = localStorage.getItem('clothify_session_id') || 'sess_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+localStorage.setItem('clothify_session_id', sessionId);
 
 const formatPrice = (amount) => {
     return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount) + ' \u20AC';
@@ -159,6 +161,145 @@ const renderStars = (rating, size = '14px') => {
         document.getElementById('cookie-consent').style.display = 'none';
     });
 })();
+
+// ---- COLOR VARIANTS MAP ----
+const colorOptions = {
+    'Tops': ['Black', 'White', 'Navy', 'Gray'],
+    'Outerwear': ['Black', 'Brown', 'Olive', 'Navy'],
+    'Dresses': ['Black', 'Red', 'Blue', 'Floral', 'White'],
+    'Footwear': ['Black', 'Brown', 'White', 'Tan'],
+    'Pants': ['Black', 'Navy', 'Khaki', 'Gray'],
+    'Accessories': ['Black', 'Brown', 'Gold', 'Silver']
+};
+
+const colorHexMap = {
+    'Black': '#1a1a1a', 'White': '#f0f0f0', 'Navy': '#1b2a4a', 'Gray': '#888',
+    'Brown': '#6d4c2a', 'Olive': '#556b2f', 'Red': '#c0392b', 'Blue': '#2980b9',
+    'Floral': '#e84393', 'Tan': '#d2b48c', 'Khaki': '#c3b091', 'Gold': '#d4a017',
+    'Silver': '#a8a9ad'
+};
+
+// ---- IMAGE LIGHTBOX ----
+let lightboxImages = [];
+let lightboxIndex = 0;
+
+const openLightbox = (images, index) => {
+    lightboxImages = images;
+    lightboxIndex = index;
+    const lb = document.getElementById('image-lightbox');
+    const img = document.getElementById('lightbox-img');
+    if (images && images.length > 0) {
+        img.src = images[index];
+        document.getElementById('lightbox-counter').textContent = `${index + 1} / ${images.length}`;
+    }
+    lb.classList.add('active');
+    document.body.style.overflow = 'hidden';
+};
+
+const closeLightbox = () => {
+    document.getElementById('image-lightbox').classList.remove('active');
+    document.body.style.overflow = 'auto';
+};
+
+const navigateLightbox = (dir) => {
+    if (!lightboxImages || lightboxImages.length === 0) return;
+    lightboxIndex = (lightboxIndex + dir + lightboxImages.length) % lightboxImages.length;
+    document.getElementById('lightbox-img').src = lightboxImages[lightboxIndex];
+    document.getElementById('lightbox-counter').textContent = `${lightboxIndex + 1} / ${lightboxImages.length}`;
+};
+
+document.addEventListener('keydown', (e) => {
+    if (!document.getElementById('image-lightbox').classList.contains('active')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') navigateLightbox(-1);
+    if (e.key === 'ArrowRight') navigateLightbox(1);
+});
+
+document.getElementById('image-lightbox')?.addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeLightbox();
+});
+
+window.openLightbox = openLightbox;
+window.closeLightbox = closeLightbox;
+window.navigateLightbox = navigateLightbox;
+
+// ---- ABANDONED CART RECOVERY ----
+const checkAbandonedCart = () => {
+    const cartData = JSON.parse(localStorage.getItem('clothify_cart') || '[]');
+    const dismissed = localStorage.getItem('clothify_abandoned_dismissed');
+    if (dismissed) {
+        const dismissedTime = parseInt(dismissed);
+        if (Date.now() - dismissedTime < 86400000) return; // 24 hours
+        localStorage.removeItem('clothify_abandoned_dismissed');
+    }
+    if (cartData.length > 0) {
+        const user = JSON.parse(localStorage.getItem('clothify_user') || 'null');
+        const subtotal = cartData.reduce((s, i) => s + (i.price * i.quantity), 0);
+        fetch(`${API_BASE}/abandoned-cart`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                sessionId,
+                email: user?.email || null,
+                name: user?.name || null,
+                cart: cartData,
+                subtotal
+            })
+        }).catch(() => {});
+        const msg = document.getElementById('abandoned-cart-msg');
+        if (msg) {
+            const count = cartData.reduce((s, i) => s + i.quantity, 0);
+            msg.textContent = `You have ${count} item${count > 1 ? 's' : ''} in your cart (${formatPrice(subtotal)}) — complete your purchase!`;
+        }
+        setTimeout(() => {
+            document.getElementById('abandoned-cart-banner')?.classList.add('show');
+        }, 15000); // Show after 15 seconds
+    }
+};
+
+const restoreAbandonedCart = () => {
+    document.getElementById('abandoned-cart-banner')?.classList.remove('show');
+    document.querySelector('.cart-icon')?.click();
+};
+
+const dismissAbandonedCart = () => {
+    document.getElementById('abandoned-cart-banner')?.classList.remove('show');
+    localStorage.setItem('clothify_abandoned_dismissed', Date.now().toString());
+};
+
+window.restoreAbandonedCart = restoreAbandonedCart;
+window.dismissAbandonedCart = dismissAbandonedCart;
+
+// ---- RETURN POLICY ----
+const openReturnPolicy = () => {
+    document.getElementById('return-policy-modal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+};
+document.querySelector('.close-return-policy')?.addEventListener('click', () => {
+    document.getElementById('return-policy-modal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+});
+window.openReturnPolicy = openReturnPolicy;
+
+// ---- PRIVACY POLICY ----
+const openPrivacyPolicy = () => {
+    document.getElementById('privacy-policy-modal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+};
+document.querySelector('.close-privacy-policy')?.addEventListener('click', () => {
+    document.getElementById('privacy-policy-modal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+});
+window.openPrivacyPolicy = openPrivacyPolicy;
+
+// ---- PAGE VIEW TRACKING ----
+const trackPageView = (page, productId = null) => {
+    fetch(`${API_BASE}/page-view`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ page, productId, sessionId })
+    }).catch(() => {});
+};
 
 // ---- LOAD PRODUCTS ----
 const loadProducts = async () => {
@@ -596,10 +737,30 @@ const openProductModal = (product) => {
         });
     });
 
-    // Hide thumbnails
-    const thumbs = document.getElementById('modal-thumbnails');
-    thumbs.innerHTML = '';
-    thumbs.style.display = 'none';
+    // Lightbox click on main image
+    const imgs = product.images && product.images.length > 0 ? product.images : [product.image, product.image, product.image, product.image];
+    modalImg.style.cursor = 'zoom-in';
+    modalImg.onclick = () => openLightbox(imgs, 0);
+
+    // Color Variants
+    const colorContainer = document.getElementById('color-options');
+    if (colorContainer) {
+        colorContainer.innerHTML = '';
+        const cat = product.category || 'Tops';
+        const colors = colorOptions[cat] || ['Black', 'White'];
+        colors.forEach((color, i) => {
+            const swatch = document.createElement('span');
+            swatch.className = `color-swatch${i === 0 ? ' active' : ''}`;
+            swatch.style.background = colorHexMap[color] || '#ccc';
+            swatch.title = color;
+            swatch.dataset.color = color;
+            swatch.addEventListener('click', () => {
+                colorContainer.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+                swatch.classList.add('active');
+            });
+            colorContainer.appendChild(swatch);
+        });
+    }
 
     // Reviews
     fetchReviews(product);
@@ -1540,6 +1701,18 @@ fetchCategories();
 switchLanguage(currentLang);
 updateCompareUI();
 renderRecentlyViewed();
+checkAbandonedCart();
+trackPageView('home');
+
+// Track product views
+document.addEventListener('click', (e) => {
+    const card = e.target.closest('.product-card');
+    if (card && !e.target.closest('.add-to-cart') && !e.target.closest('.wishlist-btn')) {
+        const name = card.querySelector('h3')?.textContent || 'unknown';
+        const product = allProducts.find(p => p.name === name);
+        if (product) trackPageView('product_view', product.id);
+    }
+});
 
 // Auto-login check
 const storedUser = localStorage.getItem('clothify_user');

@@ -161,6 +161,24 @@ async function initDb() {
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)
   )`);
+  db.run(`CREATE TABLE IF NOT EXISTS abandoned_carts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id TEXT NOT NULL,
+    customer_email TEXT,
+    customer_name TEXT,
+    cart_data TEXT NOT NULL,
+    subtotal REAL DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    recovered INTEGER DEFAULT 0,
+    recovered_at DATETIME
+  )`);
+  db.run(`CREATE TABLE IF NOT EXISTS page_views (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    page TEXT NOT NULL,
+    product_id INTEGER,
+    session_id TEXT,
+    viewed_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
 
   const settingsCnt = queryOne('SELECT COUNT(*) as cnt FROM site_settings');
   if (settingsCnt.cnt === 0) {
@@ -526,6 +544,93 @@ app.put('/api/orders/:id', (req, res) => {
   }
 });
 
+// ─── Reports / Analytics ──────────────────────────────────────────
+
+app.get('/api/admin/reports', requireAdmin, (req, res) => {
+  try {
+    const totalOrders = queryOne('SELECT COUNT(*) as count FROM orders')?.count || 0;
+    const totalRevenue = queryOne('SELECT COALESCE(SUM(total_amount), 0) as total FROM orders WHERE status != ? AND status != ?', ['cancelled', 'pending'])?.total || 0;
+    const totalProducts = queryOne('SELECT COUNT(*) as count FROM products')?.count || 0;
+    const totalCustomers = queryOne('SELECT COUNT(*) as count FROM users')?.count || 0;
+    const pendingOrders = queryOne("SELECT COUNT(*) as count FROM orders WHERE status IN ('pending','processing')")?.count || 0;
+    const lowStock = queryAll('SELECT COUNT(*) as count FROM products WHERE stock <= 3');
+    const lowStockCount = lowStock[0]?.count || 0;
+    const recentOrders = queryAll("SELECT DATE(created_at) as day, COUNT(*) as count, COALESCE(SUM(total_amount),0) as revenue FROM orders WHERE status != 'cancelled' GROUP BY DATE(created_at) ORDER BY day DESC LIMIT 14");
+    const topProducts = queryAll(`SELECT product_name, SUM(quantity) as total_sold, SUM(price * quantity) as total_revenue FROM order_items GROUP BY product_name ORDER BY total_sold DESC LIMIT 10`);
+    const categorySales = queryAll(`SELECT p.category, SUM(oi.quantity) as total_sold FROM order_items oi JOIN products p ON oi.product_id = p.id GROUP BY p.category ORDER BY total_sold DESC`);
+    const ordersByStatus = queryAll('SELECT status, COUNT(*) as count FROM orders GROUP BY status');
+    const recentOrdersList = queryAll('SELECT id, customer_name, total_amount, status, created_at FROM orders ORDER BY created_at DESC LIMIT 5');
+
+    res.json({
+      summary: { totalOrders, totalRevenue, totalProducts, totalCustomers, pendingOrders, lowStockCount },
+      trends: recentOrders.reverse(),
+      topProducts,
+      categorySales,
+      ordersByStatus,
+      recentOrders: recentOrdersList
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to generate reports' });
+  }
+});
+
+// ─── Abandoned Cart ─────────────────────────────────────────────
+
+app.post('/api/abandoned-cart', (req, res) => {
+  const { sessionId, email, name, cart, subtotal } = req.body;
+  if (!sessionId || !cart) return res.status(400).json({ error: 'Missing required data' });
+  try {
+    const existing = queryOne('SELECT id FROM abandoned_carts WHERE session_id = ? AND recovered = 0', [sessionId]);
+    if (existing) {
+      run('UPDATE abandoned_carts SET cart_data = ?, subtotal = ?, customer_email = ?, customer_name = ? WHERE id = ?',
+        [JSON.stringify(cart), subtotal || 0, email || null, name || null, existing.id]);
+      res.json({ message: 'Cart updated', id: existing.id });
+    } else {
+      const id = insertAndGetId('INSERT INTO abandoned_carts (session_id, customer_email, customer_name, cart_data, subtotal) VALUES (?, ?, ?, ?, ?)',
+        [sessionId, email || null, name || null, JSON.stringify(cart), subtotal || 0]);
+      res.status(201).json({ message: 'Abandoned cart saved', id });
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to save abandoned cart' });
+  }
+});
+
+app.get('/api/admin/abandoned-carts', requireAdmin, (req, res) => {
+  try {
+    const carts = queryAll('SELECT * FROM abandoned_carts ORDER BY created_at DESC LIMIT 50');
+    const totalAbandoned = queryOne('SELECT COUNT(*) as count FROM abandoned_carts')?.count || 0;
+    const totalRecovered = queryOne('SELECT COUNT(*) as count FROM abandoned_carts WHERE recovered = 1')?.count || 0;
+    const totalLostRevenue = queryOne('SELECT COALESCE(SUM(subtotal), 0) as total FROM abandoned_carts WHERE recovered = 0')?.total || 0;
+    res.json({ carts, totalAbandoned, totalRecovered, totalLostRevenue });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch abandoned carts' });
+  }
+});
+
+app.post('/api/abandoned-cart/recover', (req, res) => {
+  const { id } = req.body;
+  if (!id) return res.status(400).json({ error: 'Cart ID is required' });
+  try {
+    run('UPDATE abandoned_carts SET recovered = 1, recovered_at = CURRENT_TIMESTAMP WHERE id = ?', [id]);
+    res.json({ message: 'Cart marked as recovered' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to recover cart' });
+  }
+});
+
+// ─── Page View Tracking ─────────────────────────────────────────
+
+app.post('/api/page-view', (req, res) => {
+  const { page, productId, sessionId } = req.body;
+  try {
+    run('INSERT INTO page_views (page, product_id, session_id) VALUES (?, ?, ?)',
+      [page || 'unknown', productId || null, sessionId || 'anonymous']);
+    res.status(201).json({ message: 'Page view recorded' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to record page view' });
+  }
+});
+
 // ─── Auth ───────────────────────────────────────────────────────
 
 app.post('/api/logout', requireAdmin, (req, res) => {
@@ -536,7 +641,7 @@ app.post('/api/logout', requireAdmin, (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.json({ message: 'Clothify API is running...' });
+  res.json({ message: 'Clothify API is running...', version: '2.0', features: ['reports', 'abandoned-carts', 'page-views'] });
 });
 
 app.use((req, res) => {

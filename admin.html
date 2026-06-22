@@ -354,6 +354,8 @@
         <div class="admin-tabs">
             <button class="admin-tab active" onclick="switchTab('products')">Products</button>
             <button class="admin-tab" onclick="switchTab('orders')">Orders</button>
+            <button class="admin-tab" onclick="switchTab('reports')">Reports</button>
+            <button class="admin-tab" onclick="switchTab('abandoned')">Abandoned</button>
             <button class="admin-tab" onclick="switchTab('settings')">Settings</button>
         </div>
 
@@ -387,6 +389,49 @@
                 <!-- Orders will be loaded here -->
             </div>
         </div>
+        <!-- Reports Section -->
+        <div id="section-reports" class="admin-section">
+            <h2>Reports & Analytics</h2>
+            <div id="reports-loading" style="text-align:center;padding:40px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:32px;color:#888;"></i><p style="margin-top:12px;color:#888;">Loading reports...</p></div>
+            <div id="reports-content" style="display:none;">
+                <div class="reports-grid" id="reports-summary"></div>
+                <div class="chart-row">
+                    <div class="chart-container">
+                        <h3><i class="fa-solid fa-chart-simple"></i> Sales Trend (Last 14 Days)</h3>
+                        <div class="bar-chart" id="sales-trend-chart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3><i class="fa-solid fa-cube"></i> Top Selling Products</h3>
+                        <div class="bar-chart" id="top-products-chart"></div>
+                    </div>
+                </div>
+                <div class="chart-row">
+                    <div class="chart-container">
+                        <h3><i class="fa-solid fa-chart-pie"></i> Orders by Status</h3>
+                        <div id="orders-status-chart" style="display:flex;gap:12px;flex-wrap:wrap;"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3><i class="fa-solid fa-tags"></i> Category Sales</h3>
+                        <div class="bar-chart" id="category-sales-chart"></div>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <h3><i class="fa-solid fa-clock-rotate-left"></i> Recent Orders</h3>
+                    <div id="recent-orders-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Abandoned Carts Section -->
+        <div id="section-abandoned" class="admin-section">
+            <h2>Abandoned Carts</h2>
+            <div id="abandoned-loading" style="text-align:center;padding:40px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:32px;color:#888;"></i><p style="margin-top:12px;color:#888;">Loading...</p></div>
+            <div id="abandoned-content" style="display:none;">
+                <div class="reports-grid" id="abandoned-summary"></div>
+                <div id="abandoned-carts-list"></div>
+            </div>
+        </div>
+
         <!-- Settings Section -->
         <div id="section-settings" class="admin-section">
             <div class="settings-bar">
@@ -572,6 +617,8 @@
             document.querySelector(`.admin-tab[onclick*="${tab}"]`).classList.add('active');
             document.getElementById(`section-${tab}`).classList.add('active');
             if (tab === 'orders') fetchOrders();
+            if (tab === 'reports') fetchReports();
+            if (tab === 'abandoned') fetchAbandonedCarts();
             if (tab === 'settings') fetchSettings();
         }
 
@@ -801,6 +848,185 @@
             localStorage.removeItem('clothify_token');
             localStorage.removeItem('clothify_admin');
             window.location.href = 'login.html';
+        }
+
+        // ─── Reports ─────────────────────────────────────────────────
+
+        async function fetchReports() {
+            document.getElementById('reports-loading').style.display = 'block';
+            document.getElementById('reports-content').style.display = 'none';
+            try {
+                const res = await fetch(`${API_URL}/admin/reports`, {
+                    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+                });
+                if (!res.ok) { const errText = await res.text(); throw new Error(`HTTP ${res.status}: ${errText}`); }
+                const data = await res.json();
+                renderReports(data);
+            } catch (e) {
+                console.error('Reports fetch error:', e);
+                document.getElementById('reports-loading').innerHTML = `<p style="color:#e74c3c;">Failed to load reports: ${e.message}</p>`;
+            }
+        }
+
+        function renderReports(data) {
+            document.getElementById('reports-loading').style.display = 'none';
+            document.getElementById('reports-content').style.display = 'block';
+
+            const s = data.summary || {};
+            document.getElementById('reports-summary').innerHTML = `
+                <div class="report-card"><h3>Total Orders</h3><div class="report-value">${s.totalOrders || 0}</div></div>
+                <div class="report-card"><h3>Total Revenue</h3><div class="report-value">${Number(s.totalRevenue || 0).toFixed(2)} €</div><div class="report-sub">Excl. cancelled/pending</div></div>
+                <div class="report-card"><h3>Products</h3><div class="report-value">${s.totalProducts || 0}</div><div class="report-sub">${s.lowStockCount || 0} low in stock</div></div>
+                <div class="report-card"><h3>Customers</h3><div class="report-value">${s.totalCustomers || 0}</div><div class="report-sub">${s.pendingOrders || 0} pending orders</div></div>
+            `;
+
+            // Sales Trend Chart
+            renderBarChart('sales-trend-chart', (data.trends || []).map(d => ({
+                label: d.day ? new Date(d.day + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'N/A',
+                value: d.revenue || 0,
+                tooltip: `${Number(d.revenue || 0).toFixed(2)} € (${d.count || 0} orders)`
+            })), '#2ecc71');
+
+            // Top Products
+            renderBarChart('top-products-chart', (data.topProducts || []).map(d => ({
+                label: d.product_name || 'N/A',
+                value: d.total_sold || 0,
+                tooltip: `${d.total_sold || 0} sold - ${Number(d.total_revenue || 0).toFixed(2)} €`
+            })), '#3498db');
+
+            // Orders by Status
+            const statusEl = document.getElementById('orders-status-chart');
+            statusEl.innerHTML = '';
+            const statusColors = { pending: '#f39c12', processing: '#3498db', shipped: '#2ecc71', delivered: '#27ae60', cancelled: '#e74c3c' };
+            (data.ordersByStatus || []).forEach(d => {
+                const card = document.createElement('div');
+                card.style.cssText = 'flex:1;min-width:80px;text-align:center;padding:16px;background:#f8f9fa;border-radius:8px;border-left:4px solid ' + (statusColors[d.status] || '#888');
+                card.innerHTML = `<strong style="font-size:24px;display:block;">${d.count}</strong><span style="font-size:12px;color:#888;text-transform:capitalize;">${d.status.replace(/_/g, ' ')}</span>`;
+                statusEl.appendChild(card);
+            });
+
+            // Category Sales
+            renderBarChart('category-sales-chart', (data.categorySales || []).map(d => ({
+                label: d.category || 'N/A',
+                value: d.total_sold || 0,
+                tooltip: `${d.category}: ${d.total_sold || 0} sold`
+            })), '#e67e22');
+
+            // Recent Orders
+            const recentEl = document.getElementById('recent-orders-list');
+            recentEl.innerHTML = '';
+            if (!data.recentOrders || !data.recentOrders.length) {
+                recentEl.innerHTML = '<p style="color:#888;text-align:center;padding:20px;">No recent orders</p>';
+                return;
+            }
+            data.recentOrders.forEach(o => {
+                const div = document.createElement('div');
+                div.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #eee;font-size:14px;';
+                div.innerHTML = `
+                    <span><strong>#${o.id}</strong> ${o.customer_name || 'Unknown'}</span>
+                    <span style="color:#888;">${new Date(o.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                    <span style="font-weight:600;">${Number(o.total_amount || 0).toFixed(2)} €</span>
+                    <span class="order-status status-${o.status || 'pending'}">${o.status || 'Pending'}</span>
+                `;
+                recentEl.appendChild(div);
+            });
+        }
+
+        function renderBarChart(containerId, data, color = '#e67e22') {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = '';
+            if (!data || data.length === 0) {
+                container.innerHTML = '<p style="color:#888;text-align:center;width:100%;padding:30px;">No data available</p>';
+                return;
+            }
+            const maxVal = Math.max(...data.map(d => d.value), 1);
+            data.forEach(d => {
+                const item = document.createElement('div');
+                item.className = 'bar-item';
+                const pct = Math.max((d.value / maxVal) * 100, 3);
+                item.innerHTML = `
+                    <div class="bar-fill" style="height:${pct}%;background:${color};">
+                        <div class="bar-tooltip">${d.tooltip || d.value}</div>
+                    </div>
+                    <div class="bar-label" title="${d.label}">${d.label}</div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // ─── Abandoned Carts ────────────────────────────────────────
+
+        async function fetchAbandonedCarts() {
+            document.getElementById('abandoned-loading').style.display = 'block';
+            document.getElementById('abandoned-content').style.display = 'none';
+            try {
+                const res = await fetch(`${API_URL}/admin/abandoned-carts`, {
+                    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+                });
+                if (!res.ok) { const errText = await res.text(); throw new Error(`HTTP ${res.status}: ${errText}`); }
+                const data = await res.json();
+                renderAbandonedCarts(data);
+            } catch (e) {
+                console.error('Abandoned carts fetch error:', e);
+                document.getElementById('abandoned-loading').innerHTML = `<p style="color:#e74c3c;">Failed to load abandoned carts: ${e.message}</p>`;
+            }
+        }
+
+        function renderAbandonedCarts(data) {
+            document.getElementById('abandoned-loading').style.display = 'none';
+            document.getElementById('abandoned-content').style.display = 'block';
+
+            document.getElementById('abandoned-summary').innerHTML = `
+                <div class="report-card"><h3>Total Abandoned</h3><div class="report-value">${data.totalAbandoned || 0}</div></div>
+                <div class="report-card"><h3>Recovered</h3><div class="report-value">${data.totalRecovered || 0}</div><div class="report-sub">${data.totalAbandoned > 0 ? Math.round((data.totalRecovered / data.totalAbandoned) * 100) : 0}% recovery rate</div></div>
+                <div class="report-card"><h3>Lost Revenue</h3><div class="report-value">${Number(data.totalLostRevenue || 0).toFixed(2)} €</div></div>
+                <div class="report-card"><h3>Potential Value</h3><div class="report-value">${Number(data.totalLostRevenue || 0).toFixed(2)} €</div><div class="report-sub">Recoverable</div></div>
+            `;
+
+            const list = document.getElementById('abandoned-carts-list');
+            list.innerHTML = '';
+            if (!data.carts || !data.carts.length) {
+                list.innerHTML = '<div class="empty-orders"><i class="fa-solid fa-cart-plus"></i><p>No abandoned carts recorded yet.</p></div>';
+                return;
+            }
+            data.carts.forEach(c => {
+                let items = [];
+                try { items = JSON.parse(c.cart_data || '[]'); } catch {}
+                const itemSummary = items.map(i => `${i.name || 'Item'} x${i.quantity}`).join(', ');
+                const card = document.createElement('div');
+                card.className = 'order-card';
+                card.innerHTML = `
+                    <div class="order-card-header">
+                        <h3>Cart #${c.id}</h3>
+                        <span class="order-status ${c.recovered ? 'status-delivered' : 'status-pending'}">${c.recovered ? 'Recovered' : 'Abandoned'}</span>
+                    </div>
+                    <div class="order-card-info">
+                        <span><strong>Customer:</strong> ${c.customer_name || 'Anonymous'}</span>
+                        <span><strong>Email:</strong> ${c.customer_email || 'N/A'}</span>
+                        <span><strong>Date:</strong> ${new Date(c.created_at).toLocaleDateString()}</span>
+                        <span><strong>Value:</strong> ${Number(c.subtotal || 0).toFixed(2)} €</span>
+                    </div>
+                    <div class="order-card-items">Items: ${itemSummary || 'N/A'}</div>
+                    ${!c.recovered ? `<div class="order-card-actions"><button onclick="markRecovered(${c.id})">Mark as Recovered</button></div>` : ''}
+                `;
+                if (c.recovered && c.recovered_at) {
+                    card.innerHTML += `<div style="font-size:12px;color:#2ecc71;margin-top:8px;"><i class="fa-solid fa-check-circle"></i> Recovered ${new Date(c.recovered_at).toLocaleDateString()}</div>`;
+                }
+                list.appendChild(card);
+            });
+        }
+
+        async function markRecovered(id) {
+            try {
+                const res = await fetch(`${API_URL}/abandoned-cart/recover`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+                if (res.ok) { fetchAbandonedCarts(); }
+                else { alert('Failed to mark as recovered'); }
+            } catch (e) { alert('Error updating'); }
         }
 
         // ─── Settings Management ────────────────────────────────────
