@@ -265,7 +265,13 @@ app.get('/api/categories', (req, res) => {
 });
 
 app.get('/api/products', (req, res) => {
-  res.json(queryAll('SELECT * FROM products'));
+  const products = queryAll(`
+    SELECT p.id, p.name, p.price, p.image, p.description, p.category, p.stock, p.created_at,
+      COALESCE((SELECT AVG(rating) FROM reviews WHERE product_id = p.id), p.rating) as rating,
+      (SELECT COUNT(*) FROM reviews WHERE product_id = p.id) as reviews_count
+    FROM products p
+  `);
+  res.json(products);
 });
 
 app.get('/api/search', (req, res) => {
@@ -471,11 +477,11 @@ app.post('/api/feedback', (req, res) => {
 // ─── Admin: Product CRUD ────────────────────────────────────────
 
 app.post('/api/products', (req, res) => {
-  const { name, category, price, image, description, stock, rating } = req.body;
+  const { name, category, price, image, description, stock } = req.body;
   if (!name || price === undefined) return res.status(400).json({ error: 'Name and price are required' });
   try {
-    const id = insertAndGetId('INSERT INTO products (name, category, price, image, description, stock, rating) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [name, category || null, parseFloat(price), image || '', description || '', stock !== undefined ? parseInt(stock) : 10, rating !== undefined ? parseFloat(rating) : 4.0]);
+    const id = insertAndGetId('INSERT INTO products (name, category, price, image, description, stock) VALUES (?, ?, ?, ?, ?, ?)',
+      [name, category || null, parseFloat(price), image || '', description || '', stock !== undefined ? parseInt(stock) : 10]);
     res.status(201).json({ message: 'Product created', id });
   } catch (err) {
     res.status(500).json({ error: 'Failed to create product' });
@@ -483,7 +489,7 @@ app.post('/api/products', (req, res) => {
 });
 
 app.put('/api/products/:id', (req, res) => {
-  const { name, category, price, image, description, stock, rating } = req.body;
+  const { name, category, price, image, description, stock } = req.body;
   if (!queryOne('SELECT id FROM products WHERE id = ?', [req.params.id])) {
     return res.status(404).json({ error: 'Product not found' });
   }
@@ -495,7 +501,6 @@ app.put('/api/products/:id', (req, res) => {
     if (image !== undefined) { fields.image = image; params.push(image); }
     if (description !== undefined) { fields.description = description; params.push(description); }
     if (stock !== undefined) { fields.stock = parseInt(stock); params.push(parseInt(stock)); }
-    if (rating !== undefined) { fields.rating = parseFloat(rating); params.push(parseFloat(rating)); }
     const setClause = Object.keys(fields).map(k => `${k} = ?`).join(', ');
     params.push(req.params.id);
     run(`UPDATE products SET ${setClause} WHERE id = ?`, params);

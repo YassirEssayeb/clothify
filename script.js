@@ -339,10 +339,12 @@ const renderProducts = (products, container = document.getElementById('product-g
     products.forEach(product => {
         const card = document.createElement('div');
         card.className = 'product-card reveal reveal-up';
+        card.dataset.productId = product.id;
         const displayName = term ? highlightText(product.name, term) : product.name;
         const avgRating = product.reviews && product.reviews.length > 0
             ? (product.reviews.reduce((s, r) => s + r.rating, 0) / product.reviews.length)
             : (product.rating || 0);
+        const reviewCount = product.reviews ? product.reviews.length : (product.reviews_count || 0);
 
         card.innerHTML = `
             <div class="product-image-wrapper">
@@ -355,7 +357,7 @@ const renderProducts = (products, container = document.getElementById('product-g
                 <h3>${displayName}</h3>
                 <div class="product-rating">
                     ${renderStars(avgRating)}
-                    <span class="rating-count">(${product.reviews ? product.reviews.length : 0})</span>
+                    <span class="rating-count">(${reviewCount})</span>
                 </div>
                 <p class="price">${formatPrice(product.price)}</p>
                 <button class="add-to-cart" data-id="${product.id}" ${product.stock === 0 ? 'disabled' : ''}>${product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}</button>
@@ -719,8 +721,9 @@ const openProductModal = (product) => {
     const avgRating = product.reviews && product.reviews.length > 0
         ? (product.reviews.reduce((s, r) => s + r.rating, 0) / product.reviews.length)
         : (product.rating || 0);
+    const reviewCount = product.reviews ? product.reviews.length : (product.reviews_count || 0);
     const ratingEl = document.getElementById('modal-rating');
-    ratingEl.innerHTML = renderStars(avgRating, '18px') + ` <span style="color:#888;font-size:14px;margin-left:4px;">(${product.reviews ? product.reviews.length : 0})</span>`;
+    ratingEl.innerHTML = renderStars(avgRating, '18px') + ` <span style="color:#888;font-size:14px;margin-left:4px;">(${reviewCount})</span>`;
 
     // Sizes
     const sizeOptions = document.getElementById('size-options');
@@ -824,10 +827,17 @@ const fetchReviews = async (product) => {
     renderReviews(product);
     const avgRating = product.reviews && product.reviews.length > 0
         ? (product.reviews.reduce((s, r) => s + r.rating, 0) / product.reviews.length)
-        : (product.rating || 0);
+        : 0;
     const ratingEl = document.getElementById('modal-rating');
     if (ratingEl) {
         ratingEl.innerHTML = renderStars(avgRating, '18px') + ` <span style="color:#888;font-size:14px;margin-left:4px;">(${product.reviews ? product.reviews.length : 0})</span>`;
+    }
+    const card = document.querySelector(`.product-card[data-product-id="${product.id}"]`);
+    if (card) {
+        const reviews = product.reviews || [];
+        const avg = reviews.length ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length) : 0;
+        card.querySelector('.product-rating').innerHTML =
+            renderStars(avg) + `<span class="rating-count">(${reviews.length})</span>`;
     }
 };
 
@@ -903,6 +913,13 @@ document.getElementById('submit-review-btn')?.addEventListener('click', async ()
         date: new Date().toISOString()
     });
     renderReviews(currentModalProduct);
+    const card = document.querySelector(`.product-card[data-product-id="${currentModalProduct.id}"]`);
+    if (card) {
+        const reviews = currentModalProduct.reviews || [];
+        const avg = reviews.length ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length) : 0;
+        card.querySelector('.product-rating').innerHTML =
+            renderStars(avg) + `<span class="rating-count">(${reviews.length})</span>`;
+    }
     document.getElementById('review-text').value = '';
     selectedReviewRating = 0;
     document.querySelectorAll('#star-rating-input i').forEach(s => s.className = 'fa-regular fa-star');
