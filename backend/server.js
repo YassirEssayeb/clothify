@@ -4,6 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -172,6 +173,15 @@ async function initDb() {
     recovered INTEGER DEFAULT 0,
     recovered_at DATETIME
   )`);
+  db.run(`CREATE TABLE IF NOT EXISTS verification_codes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT NOT NULL,
+    code TEXT NOT NULL,
+    expires_at DATETIME NOT NULL,
+    used INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+  try { db.run('ALTER TABLE users ADD COLUMN verified INTEGER DEFAULT 0'); } catch (e) {}
   db.run(`CREATE TABLE IF NOT EXISTS page_views (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     page TEXT NOT NULL,
@@ -218,7 +228,14 @@ async function initDb() {
       ('accent_color', '#e67e22'),
       ('cookie_consent_text', 'We use cookies to enhance your experience. By continuing, you agree to our Privacy Policy.'),
       ('ga_id', 'G-XXXXXXXXXX'),
-      ('copyright_text', '\u00a9 2026 Clothify. All rights reserved.')`);
+      ('copyright_text', '\u00a9 2026 Clothify. All rights reserved.'),
+      ('google_client_id', ''),
+      ('smtp_host', ''),
+      ('smtp_port', '587'),
+      ('smtp_user', ''),
+      ('smtp_pass', ''),
+      ('smtp_from_email', ''),
+      ('smtp_from_name', 'Clothify')`);
   }
 
   const cnt = queryOne('SELECT COUNT(*) as cnt FROM products');
@@ -267,7 +284,7 @@ app.get('/api/categories', (req, res) => {
 app.get('/api/products', (req, res) => {
   const products = queryAll(`
     SELECT p.id, p.name, p.price, p.image, p.description, p.category, p.stock, p.created_at,
-      COALESCE((SELECT AVG(rating) FROM reviews WHERE product_id = p.id), p.rating) as rating,
+      COALESCE((SELECT AVG(rating) FROM reviews WHERE product_id = p.id), 0) as rating,
       (SELECT COUNT(*) FROM reviews WHERE product_id = p.id) as reviews_count
     FROM products p
   `);
@@ -340,7 +357,32 @@ app.patch('/api/orders/:id/status', (req, res) => {
   res.json({ message: 'Order status updated' });
 });
 
-app.post('/api/register', (req, res) => {
+function getSmtpSettings() {
+  const settings = {};
+  const rows = queryAll('SELECT setting_key, setting_value FROM site_settings WHERE setting_key LIKE \'smtp_%\'');
+  for (const row of rows) settings[row.setting_key] = row.setting_value;
+  return settings;
+}
+
+async function sendEmail({ to, subject, html }) {
+  const smtp = getSmtpSettings();
+  if (!smtp.smtp_host || !smtp.smtp_user || !smtp.smtp_pass) return false;
+  try {
+    const transporter = nodemailer.createTransport({
+      host: smtp.smtp_host,
+      port: parseInt(smtp.smtp_port || '587'),
+      secure: parseInt(smtp.smtp_port || '587') === 465,
+      auth: { user: smtp.smtp_user, pass: smtp.smtp_pass }
+    });
+    await transporter.sendMail({
+      from: `"${smtp.smtp_from_name || 'Clothify'}" <${smtp.smtp_from_email || smtp.smtp_user}>`,
+      to, subject, html
+    });
+    return true;
+  } catch (e) { return false; }
+}
+
+app.post('/api/register', async (req, res) => {
   const { name, email, password } = req.body;
   if (!name || !email || !password) {
     return res.status(400).json({ error: 'Name, email, and password are required' });
@@ -351,13 +393,67 @@ app.post('/api/register', (req, res) => {
   try {
     const hash = crypto.createHash('sha256').update(password).digest('hex');
     run('INSERT INTO users (name, email, password) VALUES (?, ?, ?)', [name, email, hash]);
-    res.status(201).json({ message: 'Registration successful!', user: { name, email } });
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    const expires = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+    run('INSERT INTO verification_codes (email, code, expires_at) VALUES (?, ?, ?)', [email, code, expires]);
+    const sent = await sendEmail({
+      to: email,
+      subject: 'Verify your Clothify account',
+      html: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
+        <h2 style="color:#1a1a1a;">Welcome to Clothify!</h2>
+        <p style="color:#555;">Hi ${name},<br>Your verification code is:</p>
+        <div style="font-size:32px;font-weight:700;letter-spacing:8px;text-align:center;padding:16px;background:#f5f5f5;border-radius:8px;margin:16px 0;color:#e67e22;">${code}</div>
+        <p style="color:#888;font-size:13px;">This code expires in 15 minutes.</p>
+      </div>`
+    });
+    if (sent) {
+      res.status(201).json({ message: 'Verification code sent to your email', email, verified: false });
+    } else {
+      run('UPDATE users SET verified = 1 WHERE email = ?', [email]);
+      res.status(201).json({ message: 'Registration successful! (Email not configured)', user: { name, email }, verified: true });
+    }
   } catch (err) {
     if (err.message && err.message.includes('UNIQUE')) {
       return res.status(409).json({ error: 'Email already registered' });
     }
     res.status(500).json({ error: 'Registration failed' });
   }
+});
+
+app.post('/api/verify-email', (req, res) => {
+  const { email, code } = req.body;
+  if (!email || !code) return res.status(400).json({ error: 'Email and code are required' });
+  const row = queryOne('SELECT * FROM verification_codes WHERE email = ? AND code = ? AND used = 0 AND expires_at > datetime(\'now\')', [email, code]);
+  if (!row) return res.status(400).json({ error: 'Invalid or expired code' });
+  run('UPDATE verification_codes SET used = 1 WHERE id = ?', [row.id]);
+  run('UPDATE users SET verified = 1 WHERE email = ?', [email]);
+  const user = queryOne('SELECT id, name, email, address, phone FROM users WHERE email = ?', [email]);
+  const token = crypto.randomBytes(32).toString('hex');
+  run('INSERT INTO auth_tokens (user_id, token) VALUES (?, ?)', [user.id, token]);
+  res.json({ message: 'Email verified successfully!', user, token });
+});
+
+app.post('/api/resend-code', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email is required' });
+  const user = queryOne('SELECT id FROM users WHERE email = ?', [email]);
+  if (!user) return res.status(404).json({ error: 'Email not found' });
+  run('UPDATE verification_codes SET used = 1 WHERE email = ?', [email]);
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  const expires = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+  run('INSERT INTO verification_codes (email, code, expires_at) VALUES (?, ?, ?)', [email, code, expires]);
+  const sent = await sendEmail({
+    to: email,
+    subject: 'Resending verification code - Clothify',
+    html: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
+      <h2 style="color:#1a1a1a;">Clothify Verification</h2>
+      <p style="color:#555;">Your new verification code is:</p>
+      <div style="font-size:32px;font-weight:700;letter-spacing:8px;text-align:center;padding:16px;background:#f5f5f5;border-radius:8px;margin:16px 0;color:#e67e22;">${code}</div>
+      <p style="color:#888;font-size:13px;">This code expires in 15 minutes.</p>
+    </div>`
+  });
+  if (sent) res.json({ message: 'Verification code resent' });
+  else res.status(500).json({ error: 'Failed to send email. Check SMTP settings.' });
 });
 
 function requireAdmin(req, res, next) {
@@ -380,13 +476,36 @@ app.post('/api/login', (req, res) => {
     return res.status(400).json({ error: 'Email and password are required' });
   }
   const hash = crypto.createHash('sha256').update(password).digest('hex');
-  const user = queryOne('SELECT id, name, email, address, phone FROM users WHERE email = ? AND password = ?', [email, hash]);
+  const user = queryOne('SELECT id, name, email, address, phone, verified FROM users WHERE email = ? AND password = ?', [email, hash]);
   if (!user) {
     return res.status(401).json({ error: 'Invalid email or password' });
+  }
+  if (!user.verified) {
+    return res.status(403).json({ error: 'Please verify your email first', email, verified: false });
   }
   const token = crypto.randomBytes(32).toString('hex');
   run('INSERT INTO auth_tokens (user_id, token) VALUES (?, ?)', [user.id, token]);
   res.json({ message: 'Login successful!', user, token });
+});
+
+app.post('/api/auth/google', async (req, res) => {
+  const { credential } = req.body;
+  if (!credential) return res.status(400).json({ error: 'Missing credential' });
+  try {
+    const r = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
+    if (!r.ok) return res.status(401).json({ error: 'Invalid Google token' });
+    const payload = await r.json();
+    const { email, name, sub } = payload;
+    if (!email) return res.status(400).json({ error: 'No email from Google' });
+    let user = queryOne('SELECT id, name, email, address, phone FROM users WHERE email = ?', [email]);
+    if (!user) {
+      run('INSERT INTO users (name, email, password) VALUES (?, ?, ?)', [name || email.split('@')[0], email, 'google_' + sub]);
+      user = queryOne('SELECT id, name, email, address, phone FROM users WHERE email = ?', [email]);
+    }
+    res.json({ message: 'Google sign-in successful!', user });
+  } catch (err) {
+    res.status(500).json({ error: 'Google auth failed' });
+  }
 });
 
 app.get('/api/settings', (req, res) => {

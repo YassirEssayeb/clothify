@@ -19,6 +19,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e67e22' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z'/><line x1='7' y1='7' x2='7.01' y2='7'/></svg>">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-XXXXXXXXXX');</script>
     <!-- 🔴 Replace G-XXXXXXXXXX with your real GA4 measurement ID from https://analytics.google.com -->
 </head>
@@ -505,7 +506,7 @@
                 <div id="auth-register" class="auth-pane">
                     <form id="register-form">
                         <div class="social-btns">
-                            <button type="button" class="social-btn google" onclick="showNotification('Google sign-in coming soon','fa-brands fa-google','#4285f4')"><i class="fa-brands fa-google"></i> Google</button>
+                            <button type="button" class="social-btn google" onclick="signInWithGoogle()"><i class="fa-brands fa-google"></i> Google</button>
                             <button type="button" class="social-btn apple" onclick="showNotification('Apple sign-in coming soon','fa-brands fa-apple','#000')"><i class="fa-brands fa-apple"></i> Apple</button>
                         </div>
                         <div class="divider"><span>or continue with email</span></div>
@@ -529,7 +530,7 @@
                 <div id="auth-login" class="auth-pane">
                     <form id="login-form">
                         <div class="social-btns">
-                            <button type="button" class="social-btn google" onclick="showNotification('Google sign-in coming soon','fa-brands fa-google','#4285f4')"><i class="fa-brands fa-google"></i> Google</button>
+                            <button type="button" class="social-btn google" onclick="signInWithGoogle()"><i class="fa-brands fa-google"></i> Google</button>
                             <button type="button" class="social-btn apple" onclick="showNotification('Apple sign-in coming soon','fa-brands fa-apple','#000')"><i class="fa-brands fa-apple"></i> Apple</button>
                         </div>
                         <div class="divider"><span>or continue with email</span></div>
@@ -563,6 +564,22 @@
                         </div>
                         <button type="submit" class="btn auth-btn"><i class="fa-solid fa-paper-plane"></i> Send Reset Link</button>
                         <p class="auth-switch"><a href="#" onclick="switchAuthTab('login');return false;">Back to Sign In</a></p>
+                    </form>
+                </div>
+                <!-- Verify Email -->
+                <div id="auth-verify" class="auth-pane" style="display:none;">
+                    <div style="text-align:center;padding:20px 0 10px;">
+                        <div style="font-size:48px;color:#e67e22;margin-bottom:10px;"><i class="fa-regular fa-envelope"></i></div>
+                        <h3 style="margin:0 0 6px;font-size:18px;">Verify Your Email</h3>
+                        <p style="font-size:13px;color:#888;margin:0 0 20px;" id="verify-email-text">Enter the code sent to your email</p>
+                    </div>
+                    <form id="verify-form">
+                        <div class="form-group">
+                            <label for="verify-code">Verification Code</label>
+                            <div class="input-wrap"><i class="fa-solid fa-lock"></i><input type="text" id="verify-code" required placeholder="Enter 6-digit code" maxlength="6" autocomplete="off"></div>
+                        </div>
+                        <button type="submit" class="btn auth-btn"><i class="fa-regular fa-circle-check"></i> Verify Email</button>
+                        <p class="auth-switch" style="margin-top:10px;"><a href="#" onclick="resendVerifyCode();return false;">Resend code</a></p>
                     </form>
                 </div>
             </div>
@@ -770,7 +787,7 @@
         <i class="fa-solid fa-chevron-up"></i>
     </button>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=1782308787"></script>
     <script>
     history.pushState(null, null, location.href);
     window.addEventListener('popstate', () => {

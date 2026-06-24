@@ -466,9 +466,10 @@
                     </div>
                     <div class="settings-row">
                         <div class="form-group"><label>GA4 ID</label><input type="text" id="set-ga_id" placeholder="G-XXXXXXXXXX"></div>
-                        <div class="form-group"><label>Favicon SVG</label><textarea id="set-favicon_svg" rows="2"></textarea></div>
+                        <div class="form-group"><label>Google Client ID</label><input type="text" id="set-google_client_id" placeholder="123...apps.googleusercontent.com"></div>
                     </div>
-                    <div class="settings-row full">
+                    <div class="settings-row">
+                        <div class="form-group"><label>Favicon SVG</label><textarea id="set-favicon_svg" rows="2"></textarea></div>
                         <div class="form-group"><label>Cookie Consent Text</label><textarea id="set-cookie_consent_text" rows="2"></textarea></div>
                     </div>
                 </div>
@@ -526,6 +527,22 @@
                                 <input type="text" id="set-accent_color_text" placeholder="#e67e22">
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3><i class="fa-solid fa-envelope"></i> SMTP (Email)</h3>
+                    <div class="settings-row">
+                        <div class="form-group"><label>Host</label><input type="text" id="set-smtp_host" placeholder="smtp.gmail.com"></div>
+                        <div class="form-group"><label>Port</label><input type="text" id="set-smtp_port" placeholder="587"></div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="form-group"><label>Username</label><input type="text" id="set-smtp_user" placeholder="your@email.com"></div>
+                        <div class="form-group"><label>Password</label><input type="password" id="set-smtp_pass" placeholder="App password"></div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="form-group"><label>From Email</label><input type="text" id="set-smtp_from_email" placeholder="noreply@clothify.com"></div>
+                        <div class="form-group"><label>From Name</label><input type="text" id="set-smtp_from_name" placeholder="Clothify"></div>
                     </div>
                 </div>
 
@@ -1059,6 +1076,13 @@
             'accent_color': 'set-accent_color',
             'cookie_consent_text': 'set-cookie_consent_text',
             'ga_id': 'set-ga_id',
+            'google_client_id': 'set-google_client_id',
+            'smtp_host': 'set-smtp_host',
+            'smtp_port': 'set-smtp_port',
+            'smtp_user': 'set-smtp_user',
+            'smtp_pass': 'set-smtp_pass',
+            'smtp_from_email': 'set-smtp_from_email',
+            'smtp_from_name': 'set-smtp_from_name',
             'copyright_text': 'set-copyright_text'
         };
 

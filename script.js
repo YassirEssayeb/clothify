@@ -93,25 +93,25 @@ let currentUser = JSON.parse(localStorage.getItem('clothify_user')) || null;
 
 productsData = [
     {id:1,name:"Premium Tee",price:29.00,image:"https://images.pexels.com/photos/4066290/pexels-photo-4066290.jpeg?auto=compress&cs=tinysrgb&w=1260",images:["https://images.pexels.com/photos/4066290/pexels-photo-4066290.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/428338/pexels-photo-428338.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/996329/pexels-photo-996329.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"Elevate your daily style with this premium quality tee.",category:"Tops",stock:15,rating:4.5,reviews:[]},
-    {id:2,name:"Denim Jacket",price:89.00,image:"https://images.pexels.com/photos/13662420/pexels-photo-13662420.jpeg?auto=compress&cs=tinysrgb&w=1260",images:["https://images.pexels.com/photos/13662420/pexels-photo-13662420.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/701877/pexels-photo-701877.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/2887765/pexels-photo-2887765.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/36029/aroni-arsa-1910s-bow.jpg?auto=compress&cs=tinysrgb&w=1260"],description:"Classic denim jacket with a modern fit.",category:"Outerwear",stock:8,rating:4.0,reviews:[]},
-    {id:3,name:"Summer Dress",price:49.00,image:"https://images.pexels.com/photos/19895977/pexels-photo-19895977.jpeg?auto=compress&cs=tinysrgb&w=1260",images:["https://images.pexels.com/photos/19895977/pexels-photo-19895977.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/981214/pexels-photo-981214.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/789822/pexels-photo-789822.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/1863668/pexels-photo-1863668.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"Experience ultimate comfort with this summer dress.",category:"Dresses",stock:22,rating:4.8,reviews:[]},
-    {id:4,name:"Canvas Sneakers",price:59.00,image:"https://images.pexels.com/photos/1598505/pexels-photo-1598505.jpeg?auto=compress&cs=tinysrgb&w=1260",images:["https://images.pexels.com/photos/1598505/pexels-photo-1598505.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/2529148/pexels-photo-2529148.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/267320/pexels-photo-267320.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/1670767/pexels-photo-1670767.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"Modern sneakers designed for comfort.",category:"Footwear",stock:30,rating:4.2,reviews:[]},
+    {id:2,name:"Denim Jacket",price:89.00,image:"https://images.pexels.com/photos/13662420/pexels-photo-13662420.jpeg?auto=compress&cs=tinysrgb&w=1260",images:["https://images.pexels.com/photos/13662420/pexels-photo-13662420.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/701877/pexels-photo-701877.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/2887765/pexels-photo-2887765.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/36029/aroni-arsa-1910s-bow.jpg?auto=compress&cs=tinysrgb&w=1260"],description:"Classic denim jacket with a modern fit.",category:"Outerwear",stock:8,rating:4.2,reviews:[]},
+    {id:3,name:"Summer Dress",price:49.00,image:"https://images.pexels.com/photos/19895977/pexels-photo-19895977.jpeg?auto=compress&cs=tinysrgb&w=1260",images:["https://images.pexels.com/photos/19895977/pexels-photo-19895977.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/981214/pexels-photo-981214.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/789822/pexels-photo-789822.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/1863668/pexels-photo-1863668.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"Experience ultimate comfort with this summer dress.",category:"Dresses",stock:22,rating:4.7,reviews:[]},
+    {id:4,name:"Canvas Sneakers",price:59.00,image:"https://images.pexels.com/photos/1598505/pexels-photo-1598505.jpeg?auto=compress&cs=tinysrgb&w=1260",images:["https://images.pexels.com/photos/1598505/pexels-photo-1598505.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/2529148/pexels-photo-2529148.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/267320/pexels-photo-267320.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/1670767/pexels-photo-1670767.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"Modern sneakers designed for comfort.",category:"Footwear",stock:30,rating:4.3,reviews:[]},
     {id:5,name:"Linen Shirt",price:39.00,image:"https://images.pexels.com/photos/297933/pexels-photo-297933.jpeg?auto=compress&cs=tinysrgb&w=1260",images:["https://images.pexels.com/photos/297933/pexels-photo-297933.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/2894933/pexels-photo-2894933.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/325876/pexels-photo-325876.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/769749/pexels-photo-769749.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"Light and breathable linen shirt.",category:"Tops",stock:0,rating:3.8,reviews:[]},
-    {id:6,name:"Chino Pants",price:45.00,image:"https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&q=80&w=1260",images:["https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&q=80&w=1260","https://images.pexels.com/photos/1598507/pexels-photo-1598507.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/837140/pexels-photo-837140.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/1082529/pexels-photo-1082529.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"Comfortable chino pants with modern fit.",category:"Pants",stock:18,rating:4.3,reviews:[]},
+    {id:6,name:"Chino Pants",price:45.00,image:"https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&q=80&w=1260",images:["https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&q=80&w=1260","https://images.pexels.com/photos/1598507/pexels-photo-1598507.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/837140/pexels-photo-837140.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/1082529/pexels-photo-1082529.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"Comfortable chino pants with modern fit.",category:"Pants",stock:18,rating:4.0,reviews:[]},
     {id:7,name:"Beanie Hat",price:19.00,image:"https://images.pexels.com/photos/11170599/pexels-photo-11170599.jpeg?auto=compress&cs=tinysrgb&w=1260",images:["https://images.pexels.com/photos/11170599/pexels-photo-11170599.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/2642545/pexels-photo-2642545.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/1435685/pexels-photo-1435685.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/296247/pexels-photo-296247.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"Keep warm with this premium beanie.",category:"Accessories",stock:45,rating:4.1,reviews:[]},
-    {id:8,name:"Leather Belt",price:34.00,image:"https://images.pexels.com/photos/31367058/pexels-photo-31367058.jpeg?auto=compress&cs=tinysrgb&w=1260",images:["https://images.pexels.com/photos/31367058/pexels-photo-31367058.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/1391403/pexels-photo-1391403.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/1186914/pexels-photo-1186914.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/1078958/pexels-photo-1078958.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"High-quality leather belt.",category:"Accessories",stock:5,rating:4.6,reviews:[]},
-    {id:9,name:"Urban Hoodie",price:54.00,image:"https://images.pexels.com/photos/6311387/pexels-photo-6311387.jpeg?auto=compress&cs=tinysrgb&w=1260",images:["https://images.pexels.com/photos/6311387/pexels-photo-6311387.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/5255242/pexels-photo-5255242.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/6311371/pexels-photo-6311371.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/4955083/pexels-photo-4955083.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"Cozy oversized urban hoodie.",category:"Outerwear",stock:12,rating:4.7,reviews:[]},
-    {id:10,name:"Floral Skirt",price:35.00,image:"https://images.pexels.com/photos/1007018/pexels-photo-1007018.jpeg?auto=compress&cs=tinysrgb&w=1260",images:["https://images.pexels.com/photos/1007018/pexels-photo-1007018.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/1906785/pexels-photo-1906785.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/2727206/pexels-photo-2727206.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/2755203/pexels-photo-2755203.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"Beautiful floral skirt for spring.",category:"Dresses",stock:20,rating:4.4,reviews:[]},
-    {id:11,name:"Classic Polo",price:32.00,image:"https://images.pexels.com/photos/1232459/pexels-photo-1232459.jpeg?auto=compress&cs=tinysrgb&w=1260",images:["https://images.pexels.com/photos/1232459/pexels-photo-1232459.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/545475/pexels-photo-545475.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/1035565/pexels-photo-1035565.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/1183266/pexels-photo-1183266.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"Timeless polo shirt.",category:"Tops",stock:3,rating:4.0,reviews:[]},
-    {id:12,name:"Leather Boots",price:89.00,image:"https://images.pexels.com/photos/1478442/pexels-photo-1478442.jpeg?auto=compress&cs=tinysrgb&w=1260",images:["https://images.pexels.com/photos/1478442/pexels-photo-1478442.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/267304/pexels-photo-267304.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/2897407/pexels-photo-2897407.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/207824/pexels-photo-207824.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"Rugged leather boots.",category:"Footwear",stock:0,rating:4.9,reviews:[]},
-    {id:13,name:"Silk Scarf",price:25.00,image:"https://images.unsplash.com/photo-1584302179602-e4c3d3fd629d?auto=format&fit=crop&q=80&w=1260",images:["https://images.unsplash.com/photo-1584302179602-e4c3d3fd629d?auto=format&fit=crop&q=80&w=1260","https://images.pexels.com/photos/2586297/pexels-photo-2586297.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/1556403/pexels-photo-1556403.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/322207/pexels-photo-322207.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"Elegant silk scarf.",category:"Accessories",stock:50,rating:4.2,reviews:[]},
-    {id:14,name:"Slim Fit Jeans",price:49.00,image:"https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&q=80&w=1260",images:["https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&q=80&w=1260","https://images.pexels.com/photos/298346/pexels-photo-298346.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/1082528/pexels-photo-1082528.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/5255196/pexels-photo-5255196.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"Durable slim-fit jeans.",category:"Pants",stock:10,rating:4.3,reviews:[]},
-    {id:15,name:"Wool Overcoat",price:99.00,image:"https://images.unsplash.com/photo-1544022613-e87ca75a784a?auto=format&fit=crop&q=80&w=1260",images:["https://images.unsplash.com/photo-1544022613-e87ca75a784a?auto=format&fit=crop&q=80&w=1260","https://images.pexels.com/photos/2385471/pexels-photo-2385471.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/257851/pexels-photo-257851.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/937952/pexels-photo-937952.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"Premium wool overcoat.",category:"Outerwear",stock:6,rating:4.8,reviews:[]},
-    {id:16,name:"Wrist Watch",price:59.00,image:"https://images.pexels.com/photos/277390/pexels-photo-277390.jpeg?auto=compress&cs=tinysrgb&w=1260",images:["https://images.pexels.com/photos/277390/pexels-photo-277390.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/2113994/pexels-photo-2113994.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/190819/pexels-photo-190819.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/1808253/pexels-photo-1808253.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"Minimalist analog watch.",category:"Accessories",stock:25,rating:4.6,reviews:[]},
+    {id:8,name:"Leather Belt",price:34.00,image:"https://images.pexels.com/photos/31367058/pexels-photo-31367058.jpeg?auto=compress&cs=tinysrgb&w=1260",images:["https://images.pexels.com/photos/31367058/pexels-photo-31367058.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/1391403/pexels-photo-1391403.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/1186914/pexels-photo-1186914.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/1078958/pexels-photo-1078958.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"High-quality leather belt.",category:"Accessories",stock:5,rating:3.9,reviews:[]},
+    {id:9,name:"Urban Hoodie",price:54.00,image:"https://images.pexels.com/photos/6311387/pexels-photo-6311387.jpeg?auto=compress&cs=tinysrgb&w=1260",images:["https://images.pexels.com/photos/6311387/pexels-photo-6311387.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/5255242/pexels-photo-5255242.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/6311371/pexels-photo-6311371.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/4955083/pexels-photo-4955083.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"Cozy oversized urban hoodie.",category:"Outerwear",stock:12,rating:4.6,reviews:[]},
+    {id:10,name:"Floral Skirt",price:35.00,image:"https://images.pexels.com/photos/1007018/pexels-photo-1007018.jpeg?auto=compress&cs=tinysrgb&w=1260",images:["https://images.pexels.com/photos/1007018/pexels-photo-1007018.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/1906785/pexels-photo-1906785.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/2727206/pexels-photo-2727206.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/2755203/pexels-photo-2755203.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"Beautiful floral skirt for spring.",category:"Dresses",stock:20,rating:4.0,reviews:[]},
+    {id:11,name:"Classic Polo",price:32.00,image:"https://images.pexels.com/photos/1232459/pexels-photo-1232459.jpeg?auto=compress&cs=tinysrgb&w=1260",images:["https://images.pexels.com/photos/1232459/pexels-photo-1232459.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/545475/pexels-photo-545475.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/1035565/pexels-photo-1035565.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/1183266/pexels-photo-1183266.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"Timeless polo shirt.",category:"Tops",stock:3,rating:4.4,reviews:[]},
+    {id:12,name:"Leather Boots",price:89.00,image:"https://images.pexels.com/photos/1478442/pexels-photo-1478442.jpeg?auto=compress&cs=tinysrgb&w=1260",images:["https://images.pexels.com/photos/1478442/pexels-photo-1478442.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/267304/pexels-photo-267304.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/2897407/pexels-photo-2897407.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/207824/pexels-photo-207824.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"Rugged leather boots.",category:"Footwear",stock:0,rating:4.8,reviews:[]},
+    {id:13,name:"Silk Scarf",price:25.00,image:"https://images.unsplash.com/photo-1584302179602-e4c3d3fd629d?auto=format&fit=crop&q=80&w=1260",images:["https://images.unsplash.com/photo-1584302179602-e4c3d3fd629d?auto=format&fit=crop&q=80&w=1260","https://images.pexels.com/photos/2586297/pexels-photo-2586297.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/1556403/pexels-photo-1556403.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/322207/pexels-photo-322207.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"Elegant silk scarf.",category:"Accessories",stock:50,rating:3.5,reviews:[]},
+    {id:14,name:"Slim Fit Jeans",price:49.00,image:"https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&q=80&w=1260",images:["https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&q=80&w=1260","https://images.pexels.com/photos/298346/pexels-photo-298346.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/1082528/pexels-photo-1082528.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/5255196/pexels-photo-5255196.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"Durable slim-fit jeans.",category:"Pants",stock:10,rating:4.2,reviews:[]},
+    {id:15,name:"Wool Overcoat",price:99.00,image:"https://images.unsplash.com/photo-1544022613-e87ca75a784a?auto=format&fit=crop&q=80&w=1260",images:["https://images.unsplash.com/photo-1544022613-e87ca75a784a?auto=format&fit=crop&q=80&w=1260","https://images.pexels.com/photos/2385471/pexels-photo-2385471.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/257851/pexels-photo-257851.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/937952/pexels-photo-937952.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"Premium wool overcoat.",category:"Outerwear",stock:6,rating:4.6,reviews:[]},
+    {id:16,name:"Wrist Watch",price:59.00,image:"https://images.pexels.com/photos/277390/pexels-photo-277390.jpeg?auto=compress&cs=tinysrgb&w=1260",images:["https://images.pexels.com/photos/277390/pexels-photo-277390.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/2113994/pexels-photo-2113994.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/190819/pexels-photo-190819.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/1808253/pexels-photo-1808253.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"Minimalist analog watch.",category:"Accessories",stock:25,rating:4.3,reviews:[]},
     {id:17,name:"Suede Loafers",price:69.00,image:"https://images.pexels.com/photos/190819/pexels-photo-190819.jpeg?auto=compress&cs=tinysrgb&w=1260",images:["https://images.pexels.com/photos/190819/pexels-photo-190819.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/267304/pexels-photo-267304.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/1461634/pexels-photo-1461634.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/292634/pexels-photo-292634.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"Elegant suede loafers.",category:"Footwear",stock:14,rating:4.1,reviews:[]},
-    {id:18,name:"Aviator Sunglasses",price:45.00,image:"https://images.unsplash.com/photo-1572635196237-14b3f281503f?auto=format&fit=crop&q=80&w=1260",images:["https://images.unsplash.com/photo-1572635196237-14b3f281503f?auto=format&fit=crop&q=80&w=1260","https://images.pexels.com/photos/2587370/pexels-photo-2587370.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/1187609/pexels-photo-1187609.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/422684/pexels-photo-422684.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"Classic aviator sunglasses.",category:"Accessories",stock:35,rating:4.5,reviews:[]},
+    {id:18,name:"Aviator Sunglasses",price:45.00,image:"https://images.unsplash.com/photo-1572635196237-14b3f281503f?auto=format&fit=crop&q=80&w=1260",images:["https://images.unsplash.com/photo-1572635196237-14b3f281503f?auto=format&fit=crop&q=80&w=1260","https://images.pexels.com/photos/2587370/pexels-photo-2587370.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/1187609/pexels-photo-1187609.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/422684/pexels-photo-422684.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"Classic aviator sunglasses.",category:"Accessories",stock:35,rating:4.0,reviews:[]},
     {id:19,name:"V-Neck Sweater",price:49.00,image:"https://images.pexels.com/photos/45982/pexels-photo-45982.jpeg?auto=compress&cs=tinysrgb&w=1260",images:["https://images.pexels.com/photos/45982/pexels-photo-45982.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/2870325/pexels-photo-2870325.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/325876/pexels-photo-325876.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/769749/pexels-photo-769749.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"Soft wool V-neck sweater.",category:"Tops",stock:2,rating:4.0,reviews:[]},
-    {id:20,name:"Cargo Pants",price:55.00,image:"https://images.unsplash.com/photo-1591195853828-11db59a44f6b?auto=format&fit=crop&q=80&w=1260",images:["https://images.unsplash.com/photo-1591195853828-11db59a44f6b?auto=format&fit=crop&q=80&w=1260","https://images.pexels.com/photos/1082529/pexels-photo-1082529.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/837140/pexels-photo-837140.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/5255196/pexels-photo-5255196.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"Durable cargo pants.",category:"Pants",stock:11,rating:4.4,reviews:[]}
+    {id:20,name:"Cargo Pants",price:55.00,image:"https://images.unsplash.com/photo-1591195853828-11db59a44f6b?auto=format&fit=crop&q=80&w=1260",images:["https://images.unsplash.com/photo-1591195853828-11db59a44f6b?auto=format&fit=crop&q=80&w=1260","https://images.pexels.com/photos/1082529/pexels-photo-1082529.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/837140/pexels-photo-837140.jpeg?auto=compress&cs=tinysrgb&w=1260","https://images.pexels.com/photos/5255196/pexels-photo-5255196.jpeg?auto=compress&cs=tinysrgb&w=1260"],description:"Durable cargo pants.",category:"Pants",stock:11,rating:3.7,reviews:[]}
 ];
 
 // ---- NOTIFICATION ----
@@ -138,11 +138,14 @@ const highlightText = (text, term) => {
 
 // ---- STARS RENDER ----
 const renderStars = (rating, size = '14px') => {
-    const full = Math.round(rating);
-    const empty = 5 - full;
+    rating = parseFloat(rating) || 0;
+    const full = Math.floor(rating);
+    const half = (rating - full) >= 0.5 ? 1 : 0;
+    const empty = Math.max(0, 5 - full - half);
     const s = `style="font-size:${size};color:#f1c40f"`;
     const e = `style="font-size:${size};color:#ddd"`;
     return ('<i class="fa-solid fa-star" ' + s + '></i>').repeat(full) +
+        (half ? '<i class="fa-solid fa-star-half-alt" ' + s + '></i>' : '') +
         ('<i class="fa-regular fa-star" ' + e + '></i>').repeat(empty);
 };
 
@@ -341,9 +344,9 @@ const renderProducts = (products, container = document.getElementById('product-g
         card.className = 'product-card reveal reveal-up';
         card.dataset.productId = product.id;
         const displayName = term ? highlightText(product.name, term) : product.name;
-        const avgRating = product.reviews && product.reviews.length > 0
+        const avgRating = (product.reviews && product.reviews.length > 0)
             ? (product.reviews.reduce((s, r) => s + r.rating, 0) / product.reviews.length)
-            : (product.rating || 0);
+            : (product.reviews_count > 0 ? (product.rating || 0) : 0);
         const reviewCount = product.reviews ? product.reviews.length : (product.reviews_count || 0);
 
         card.innerHTML = `
@@ -357,7 +360,7 @@ const renderProducts = (products, container = document.getElementById('product-g
                 <h3>${displayName}</h3>
                 <div class="product-rating">
                     ${renderStars(avgRating)}
-                    <span class="rating-count">(${reviewCount})</span>
+                    <span class="rating-count">${avgRating.toFixed(1)} (${reviewCount})</span>
                 </div>
                 <p class="price">${formatPrice(product.price)}</p>
                 <button class="add-to-cart" data-id="${product.id}" ${product.stock === 0 ? 'disabled' : ''}>${product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}</button>
@@ -718,9 +721,9 @@ const openProductModal = (product) => {
     }
 
     // Rating
-    const avgRating = product.reviews && product.reviews.length > 0
+    const avgRating = (product.reviews && product.reviews.length > 0)
         ? (product.reviews.reduce((s, r) => s + r.rating, 0) / product.reviews.length)
-        : (product.rating || 0);
+        : (product.reviews_count > 0 ? (product.rating || 0) : 0);
     const reviewCount = product.reviews ? product.reviews.length : (product.reviews_count || 0);
     const ratingEl = document.getElementById('modal-rating');
     ratingEl.innerHTML = renderStars(avgRating, '18px') + ` <span style="color:#888;font-size:14px;margin-left:4px;">(${reviewCount})</span>`;
@@ -825,19 +828,22 @@ const fetchReviews = async (product) => {
         }
     } catch {}
     renderReviews(product);
-    const avgRating = product.reviews && product.reviews.length > 0
+    const avgRating = (product.reviews && product.reviews.length > 0)
         ? (product.reviews.reduce((s, r) => s + r.rating, 0) / product.reviews.length)
-        : 0;
+        : (product.reviews_count > 0 ? (product.rating || 0) : 0);
     const ratingEl = document.getElementById('modal-rating');
     if (ratingEl) {
-        ratingEl.innerHTML = renderStars(avgRating, '18px') + ` <span style="color:#888;font-size:14px;margin-left:4px;">(${product.reviews ? product.reviews.length : 0})</span>`;
+        ratingEl.innerHTML = renderStars(avgRating, '18px') + ` <span style="color:#888;font-size:14px;margin-left:4px;">(${product.reviews ? product.reviews.length : (product.reviews_count || 0)})</span>`;
     }
     const card = document.querySelector(`.product-card[data-product-id="${product.id}"]`);
     if (card) {
         const reviews = product.reviews || [];
-        const avg = reviews.length ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length) : 0;
+        const avg = reviews.length
+            ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length)
+            : ((product.reviews_count || 0) > 0 ? (product.rating || 0) : 0);
+        const cnt = reviews.length || (product.reviews_count || 0);
         card.querySelector('.product-rating').innerHTML =
-            renderStars(avg) + `<span class="rating-count">(${reviews.length})</span>`;
+            renderStars(avg) + `<span class="rating-count">(${cnt})</span>`;
     }
 };
 
@@ -1401,11 +1407,11 @@ const feedbackForm = document.getElementById('feedback-form');
 
 window.switchAuthTab = (tab) => {
     document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.auth-pane').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.auth-pane').forEach(p => { p.classList.remove('active'); p.style.display = ''; });
     const tabEl = Array.from(document.querySelectorAll('.auth-tab')).find(t => t.textContent.toLowerCase().includes(tab) || t.getAttribute('onclick')?.includes(tab));
-    if (!tabEl) return;
-    tabEl.classList.add('active');
-    document.getElementById(`auth-${tab}`).classList.add('active');
+    if (tabEl) tabEl.classList.add('active');
+    const pane = document.getElementById(`auth-${tab}`);
+    if (pane) pane.classList.add('active');
 
     const titles = { feedback: ['Feedback', "We'd love to hear from you"], register: ['Create Account', 'Join us today!'], login: ['Welcome Back', 'Sign in to your account'], reset: ['Reset Password', "We'll send you a reset link"] };
     const [title, subtitle] = titles[tab] || ['', ''];
@@ -1465,13 +1471,28 @@ document.getElementById('register-form')?.addEventListener('submit', async (e) =
         const res = await fetch(`${API_BASE}/register`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name,email,password}) });
         if (res.ok) {
             const data = await res.json();
-            currentUser = data.user || { name, email };
-            localStorage.setItem('clothify_user', JSON.stringify(currentUser));
-            showNotification('Account created!', 'fa-circle-check', '#2ecc71');
-            document.getElementById('auth-modal').style.display = 'none';
-            document.body.style.overflow = 'auto';
+            if (data.verified === false) {
+                document.getElementById('verify-email-text').textContent = `Enter the code sent to ${email}`;
+                document.getElementById('auth-register').classList.remove('active');
+                document.getElementById('auth-verify').style.display = 'block';
+                document.getElementById('auth-verify').classList.add('active');
+                document.getElementById('auth-title').textContent = 'Verify Email';
+                document.getElementById('auth-subtitle').textContent = 'Check your inbox';
+                document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+                document.getElementById('verify-form').dataset.email = email;
+                document.getElementById('verify-form').dataset.name = name;
+                document.getElementById('verify-form').dataset.password = password;
+                showNotification('Verification code sent!', 'fa-envelope', '#e67e22');
+            } else {
+                currentUser = data.user || { name, email };
+                localStorage.setItem('clothify_user', JSON.stringify(currentUser));
+                showNotification('Account created!', 'fa-circle-check', '#2ecc71');
+                document.getElementById('auth-modal').style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
         } else {
-            showNotification('Registration failed', 'fa-exclamation-circle', '#e74c3c');
+            const err = await res.json();
+            showNotification(err.error || 'Registration failed', 'fa-exclamation-circle', '#e74c3c');
             btn.disabled = false; btn.innerText = 'Create Account';
         }
     } catch {
@@ -1501,6 +1522,21 @@ document.getElementById('login-form')?.addEventListener('submit', async (e) => {
             document.body.style.overflow = 'auto';
         } else {
             const err = await res.json();
+            if (res.status === 403 && !err.verified) {
+                document.getElementById('verify-email-text').textContent = `Enter the code sent to ${email}`;
+                document.getElementById('auth-login').classList.remove('active');
+                document.getElementById('auth-verify').style.display = 'block';
+                document.getElementById('auth-verify').classList.add('active');
+                document.getElementById('auth-title').textContent = 'Verify Email';
+                document.getElementById('auth-subtitle').textContent = 'Please verify before signing in';
+                document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+                document.getElementById('verify-form').dataset.email = email;
+                document.getElementById('verify-form').dataset.name = email.split('@')[0];
+                document.getElementById('verify-form').dataset.password = '';
+                btn.disabled = false; btn.innerText = 'Sign In';
+                showNotification('Please verify your email', 'fa-envelope', '#e67e22');
+                return;
+            }
             showNotification(err.message || 'Login failed', 'fa-exclamation-circle', '#e74c3c');
             btn.disabled = false; btn.innerText = 'Sign In';
         }
@@ -1521,6 +1557,46 @@ document.getElementById('reset-form')?.addEventListener('submit', (e) => {
     document.getElementById('auth-modal').style.display = 'none';
     document.body.style.overflow = 'auto';
 });
+
+// Verify Email
+document.getElementById('verify-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const code = document.getElementById('verify-code').value;
+    const email = document.getElementById('verify-form').dataset.email;
+    const name = document.getElementById('verify-form').dataset.name;
+    const btn = document.querySelector('#verify-form button');
+    btn.disabled = true; btn.innerText = 'Verifying...';
+    try {
+        const res = await fetch(`${API_BASE}/verify-email`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email,code}) });
+        if (res.ok) {
+            const data = await res.json();
+            currentUser = data.user || { name, email };
+            localStorage.setItem('clothify_user', JSON.stringify(currentUser));
+            showNotification('Email verified!', 'fa-circle-check', '#2ecc71');
+            document.getElementById('auth-modal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        } else {
+            const err = await res.json();
+            showNotification(err.error || 'Invalid code', 'fa-exclamation-circle', '#e74c3c');
+            btn.disabled = false; btn.innerText = 'Verify Email';
+        }
+    } catch {
+        showNotification('Verification failed', 'fa-exclamation-circle', '#e74c3c');
+        btn.disabled = false; btn.innerText = 'Verify Email';
+    }
+});
+
+async function resendVerifyCode() {
+    const email = document.getElementById('verify-form').dataset.email;
+    if (!email) return;
+    try {
+        const res = await fetch(`${API_BASE}/resend-code`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email}) });
+        if (res.ok) showNotification('Code resent!', 'fa-envelope', '#2ecc71');
+        else showNotification('Failed to resend', 'fa-exclamation-circle', '#e74c3c');
+    } catch {
+        showNotification('Failed to resend', 'fa-exclamation-circle', '#e74c3c');
+    }
+}
 
 // ---- NEWSLETTER ----
 document.getElementById('subscribe-form')?.addEventListener('submit', async (e) => {
@@ -1709,6 +1785,46 @@ function applySettings(s) {
     const existing = document.querySelector('script[src*="googletagmanager"]');
     if (existing) existing.src = `https://www.googletagmanager.com/gtag/js?id=${s.ga_id}`;
   }
+
+  if (s.google_client_id) {
+    const modal = document.getElementById('auth-modal');
+    if (modal) modal.dataset.googleClientId = s.google_client_id;
+  }
+}
+
+// ---- GOOGLE SIGN-IN ----
+function handleGoogleCredential(response) {
+    fetch(`${API_BASE}/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: response.credential })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.user) {
+            currentUser = data.user;
+            localStorage.setItem('clothify_user', JSON.stringify(currentUser));
+            showNotification('Google sign-in successful!', 'fa-circle-check', '#2ecc71');
+            document.getElementById('auth-modal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        } else {
+            showNotification('Google sign-in failed', 'fa-exclamation-circle', '#e74c3c');
+        }
+    })
+    .catch(() => showNotification('Google sign-in failed', 'fa-exclamation-circle', '#e74c3c'));
+}
+
+function signInWithGoogle() {
+    const clientId = document.getElementById('auth-modal')?.dataset?.googleClientId;
+    if (!clientId) {
+        showNotification('Google sign-in coming soon', 'fa-brands fa-google', '#4285f4');
+        return;
+    }
+    google.accounts.id.initialize({
+        client_id: clientId,
+        callback: handleGoogleCredential
+    });
+    google.accounts.id.prompt();
 }
 
 // ---- INIT ----
