@@ -77,6 +77,19 @@ async function initDb() {
     rating REAL DEFAULT 4.0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
+  db.run(`CREATE TABLE IF NOT EXISTS payments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    order_id INTEGER,
+    transaction_id TEXT NOT NULL UNIQUE,
+    card_brand TEXT NOT NULL,
+    last_four TEXT NOT NULL,
+    amount REAL NOT NULL,
+    currency TEXT DEFAULT 'EUR',
+    status TEXT DEFAULT 'completed',
+    gateway_response TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES orders(id)
+  )`);
   db.run(`CREATE TABLE IF NOT EXISTS orders (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     customer_name TEXT NOT NULL,
@@ -85,8 +98,10 @@ async function initDb() {
     total_amount REAL NOT NULL,
     payment_method TEXT DEFAULT 'COD',
     payment_status TEXT DEFAULT 'Pending',
+    payment_id INTEGER,
     status TEXT DEFAULT 'pending',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (payment_id) REFERENCES payments(id)
   )`);
   db.run(`CREATE TABLE IF NOT EXISTS order_items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -182,6 +197,7 @@ async function initDb() {
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
   try { db.run('ALTER TABLE users ADD COLUMN verified INTEGER DEFAULT 0'); } catch (e) {}
+  try { db.run('ALTER TABLE orders ADD COLUMN payment_id INTEGER REFERENCES payments(id)'); } catch (e) {}
   db.run(`CREATE TABLE IF NOT EXISTS page_views (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     page TEXT NOT NULL,
@@ -305,13 +321,23 @@ app.get('/api/products/:id', (req, res) => {
 });
 
 app.post('/api/orders', (req, res) => {
-  const { name, email, address, cart, total, paymentMethod, paymentStatus } = req.body;
+  const { name, email, address, cart, total, paymentMethod, paymentStatus, paymentId } = req.body;
   if (!name || !email || !address || !cart || cart.length === 0) {
     return res.status(400).json({ error: 'Missing required order information' });
   }
   try {
-    const orderId = insertAndGetId('INSERT INTO orders (customer_name, customer_email, customer_address, total_amount, payment_method, payment_status, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [name, email, address, total, paymentMethod || 'COD', paymentStatus || 'Pending', 'pending']);
+    if (paymentId) {
+      const payment = queryOne('SELECT id FROM payments WHERE id = ?', [paymentId]);
+      if (!payment) return res.status(400).json({ error: 'Invalid payment reference' });
+    }
+    const orderId = insertAndGetId(
+      `INSERT INTO orders (customer_name, customer_email, customer_address, total_amount, payment_method, payment_status, payment_id, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')`,
+      [name, email, address, total, paymentMethod || 'COD', paymentStatus || 'Pending', paymentId || null]
+    );
+    if (paymentId) {
+      run('UPDATE payments SET order_id = ? WHERE id = ?', [orderId, paymentId]);
+    }
     for (const item of cart) {
       run('INSERT INTO order_items (order_id, product_id, product_name, quantity, price) VALUES (?, ?, ?, ?, ?)',
         [orderId, item.id, item.name, item.quantity, item.price]);
@@ -331,6 +357,9 @@ app.get('/api/orders', (req, res) => {
   for (const order of orders) {
     order.items = queryAll('SELECT * FROM order_items WHERE order_id = ?', [order.id]);
     order.tracking = queryAll('SELECT * FROM order_tracking WHERE order_id = ? ORDER BY created_at ASC', [order.id]);
+    if (order.payment_id) {
+      order.payment = queryOne('SELECT * FROM payments WHERE id = ?', [order.payment_id]);
+    }
   }
   res.json(orders);
 });
@@ -340,6 +369,9 @@ app.get('/api/orders/:id', (req, res) => {
   if (!order) return res.status(404).json({ error: 'Order not found' });
   order.items = queryAll('SELECT * FROM order_items WHERE order_id = ?', [order.id]);
   order.tracking = queryAll('SELECT * FROM order_tracking WHERE order_id = ? ORDER BY created_at ASC', [order.id]);
+  if (order.payment_id) {
+    order.payment = queryOne('SELECT * FROM payments WHERE id = ?', [order.payment_id]);
+  }
   res.json(order);
 });
 
@@ -381,6 +413,98 @@ async function sendEmail({ to, subject, html }) {
     return true;
   } catch (e) { return false; }
 }
+
+// ─── Payment Processing ────────────────────────────────────────────
+
+function luhnCheck(cardNumber) {
+  const digits = cardNumber.replace(/\D/g, '');
+  if (digits.length < 13 || digits.length > 19) return false;
+  let sum = 0, alternate = false;
+  for (let i = digits.length - 1; i >= 0; i--) {
+    let n = parseInt(digits[i], 10);
+    if (alternate) { n *= 2; if (n > 9) n -= 9; }
+    sum += n;
+    alternate = !alternate;
+  }
+  return sum % 10 === 0;
+}
+
+function detectCardBrand(cardNumber) {
+  const n = cardNumber.replace(/\D/g, '');
+  if (/^4/.test(n)) return 'Visa';
+  if (/^5[1-5]/.test(n) || /^2[2-7]/.test(n)) return 'Mastercard';
+  if (/^3[47]/.test(n)) return 'Amex';
+  if (/^6(?:011|5)/.test(n)) return 'Discover';
+  return 'Unknown';
+}
+
+function generateTransactionId() {
+  const prefix = 'TXN';
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const random = crypto.randomBytes(4).toString('hex').toUpperCase();
+  return `${prefix}${timestamp}${random}`;
+}
+
+app.post('/api/process-payment', (req, res) => {
+  const { cardNumber, cardExpiry, cardCvv, amount, currency } = req.body;
+
+  if (!cardNumber || !cardExpiry || !cardCvv || amount === undefined) {
+    return res.status(400).json({ error: 'Missing required payment fields' });
+  }
+
+  const cleanNumber = cardNumber.replace(/\D/g, '');
+  if (!luhnCheck(cleanNumber)) {
+    return res.status(422).json({ error: 'Invalid card number' });
+  }
+
+  const brand = detectCardBrand(cleanNumber);
+  if (brand === 'Unknown') {
+    return res.status(422).json({ error: 'Unsupported card type' });
+  }
+
+  const [expMonth, expYear] = cardExpiry.split('/').map(s => parseInt(s, 10));
+  if (!expMonth || !expYear || expMonth < 1 || expMonth > 12) {
+    return res.status(422).json({ error: 'Invalid expiry date format' });
+  }
+
+  const now = new Date();
+  const currentYear = now.getFullYear() % 100;
+  const currentMonth = now.getMonth() + 1;
+  const fullYear = expYear < 100 ? 2000 + expYear : expYear;
+  if (fullYear < now.getFullYear() || (fullYear === now.getFullYear() && expMonth < currentMonth)) {
+    return res.status(422).json({ error: 'Card has expired' });
+  }
+
+  const cleanCvv = cardCvv.replace(/\D/g, '');
+  if (cleanCvv.length < 3 || cleanCvv.length > 4) {
+    return res.status(422).json({ error: 'Invalid CVV' });
+  }
+
+  const confirmedAmount = parseFloat(amount);
+  if (isNaN(confirmedAmount) || confirmedAmount <= 0) {
+    return res.status(422).json({ error: 'Invalid payment amount' });
+  }
+
+  const transactionId = generateTransactionId();
+  const lastFour = cleanNumber.slice(-4);
+
+  const paymentId = insertAndGetId(
+    `INSERT INTO payments (transaction_id, card_brand, last_four, amount, currency, status, gateway_response)
+     VALUES (?, ?, ?, ?, ?, 'completed', ?)`,
+    [transactionId, brand, lastFour, confirmedAmount, currency || 'EUR', 'Payment authorized successfully']
+  );
+
+  res.json({
+    success: true,
+    transactionId,
+    paymentId,
+    brand,
+    lastFour,
+    amount: confirmedAmount,
+    currency: currency || 'EUR',
+    message: 'Payment successful'
+  });
+});
 
 app.post('/api/register', async (req, res) => {
   const { name, email, password } = req.body;
@@ -645,6 +769,9 @@ app.get('/api/admin/orders', (req, res) => {
   for (const order of orders) {
     order.items = queryAll('SELECT * FROM order_items WHERE order_id = ?', [order.id]);
     order.tracking = queryAll('SELECT * FROM order_tracking WHERE order_id = ? ORDER BY created_at ASC', [order.id]);
+    if (order.payment_id) {
+      order.payment = queryOne('SELECT * FROM payments WHERE id = ?', [order.payment_id]);
+    }
   }
   res.json(orders);
 });

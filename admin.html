@@ -790,6 +790,11 @@
                 ).join(', ');
                 const total = order.items?.reduce((s, i) => s + (i.price * i.quantity), 0) || order.total_amount;
 
+                const payment = order.payment;
+                const paymentInfo = payment
+                    ? `${order.payment_method} · ${payment.card_brand} ····${payment.last_four} · TXN: ${payment.transaction_id}`
+                    : `${order.payment_method} (${order.payment_status || 'Pending'})`;
+
                 const card = document.createElement('div');
                 card.className = 'order-card';
                 card.innerHTML = `
@@ -802,7 +807,7 @@
                         <span><strong>Email:</strong> ${order.customer_email || 'N/A'}</span>
                         <span><strong>Date:</strong> ${new Date(order.created_at).toLocaleDateString()}</span>
                         <span><strong>Total:</strong> ${Number(total).toFixed(2)} €</span>
-                        <span><strong>Payment:</strong> ${order.payment_method || 'COD'} (${order.payment_status || 'Pending'})</span>
+                        <span><strong>Payment:</strong> ${paymentInfo}</span>
                         <span><strong>Address:</strong> ${(order.customer_address || '').substring(0, 30)}${(order.customer_address || '').length > 30 ? '...' : ''}</span>
                     </div>
                     ${itemsHtml ? `<div class="order-card-items">Items: ${itemsHtml}</div>` : ''}

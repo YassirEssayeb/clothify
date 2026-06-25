@@ -1180,21 +1180,34 @@ document.querySelector('.close-checkout').addEventListener('click', () => {
     document.body.style.overflow = 'auto';
 });
 
+// ─── Luhn Card Validation ──────────────────────────────────────────
+
+function luhnCheck(cardNumber) {
+  const digits = cardNumber.replace(/\D/g, '');
+  if (digits.length < 13 || digits.length > 19) return false;
+  let sum = 0, alternate = false;
+  for (let i = digits.length - 1; i >= 0; i--) {
+    let n = parseInt(digits[i], 10);
+    if (alternate) { n *= 2; if (n > 9) n -= 9; }
+    sum += n;
+    alternate = !alternate;
+  }
+  return sum % 10 === 0;
+}
+
+async function processCardPayment(cardData, amount) {
+  const res = await fetch(`${API_BASE}/process-payment`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(cardData)
+  });
+  return await res.json();
+}
+
 orderForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const submitBtn = orderForm.querySelector('.place-order-btn');
     const paymentMethod = document.querySelector('input[name="payment-method"]:checked').value;
-
-    if (paymentMethod === 'Card') {
-        const cn = document.getElementById('card-number').value.replace(/\s/g, '');
-        const ce = document.getElementById('card-expiry').value;
-        const cv = document.getElementById('card-cvv').value;
-        if (!cn || !ce || !cv) { showNotification('Please fill in all card details', 'fa-credit-card', '#e74c3c'); return; }
-        if (cn.length < 16) { showNotification('Invalid card number', 'fa-credit-card', '#e74c3c'); return; }
-    }
-
-    submitBtn.disabled = true;
-    submitBtn.innerText = 'Processing...';
 
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const country = document.getElementById('country').value;
@@ -1205,7 +1218,47 @@ orderForm.addEventListener('submit', (e) => {
     const tax = discountedSubtotal * taxRate;
     const total = discountedSubtotal + shipping + tax;
 
-    const orderData = {
+    submitBtn.disabled = true;
+    submitBtn.innerText = 'Processing...';
+
+    (async () => {
+      let paymentId = null;
+      let paymentStatus = 'Pending';
+
+      if (paymentMethod === 'Card') {
+        const cardNumber = document.getElementById('card-number').value.replace(/\s/g, '');
+        const cardExpiry = document.getElementById('card-expiry').value;
+        const cardCvv = document.getElementById('card-cvv').value;
+        const cardHolder = document.getElementById('card-name')?.value || '';
+
+        if (!cardNumber || !cardExpiry || !cardCvv) {
+          showNotification('Please fill in all card details', 'fa-credit-card', '#e74c3c');
+          submitBtn.disabled = false; submitBtn.innerText = 'Place Order';
+          return;
+        }
+        if (!luhnCheck(cardNumber)) {
+          showNotification('Invalid card number', 'fa-credit-card', '#e74c3c');
+          submitBtn.disabled = false; submitBtn.innerText = 'Place Order';
+          return;
+        }
+
+        const paymentResult = await processCardPayment({
+          cardNumber, cardExpiry, cardCvv, cardHolder,
+          amount: total,
+          currency: 'EUR'
+        });
+
+        if (!paymentResult.success) {
+          showNotification(paymentResult.error || 'Payment failed', 'fa-credit-card', '#e74c3c');
+          submitBtn.disabled = false; submitBtn.innerText = 'Place Order';
+          return;
+        }
+
+        paymentId = paymentResult.paymentId;
+        paymentStatus = 'Paid';
+      }
+
+      const orderData = {
         name: document.getElementById('name').value,
         email: document.getElementById('email').value,
         address: document.getElementById('address').value,
@@ -1219,52 +1272,55 @@ orderForm.addEventListener('submit', (e) => {
         discount: discount,
         total: total,
         paymentMethod: paymentMethod,
-        paymentStatus: paymentMethod === 'Card' ? 'Paid' : 'Pending',
-    };
+        paymentStatus: paymentStatus,
+        paymentId: paymentId,
+      };
 
-    (async () => {
-        let orderId = Date.now();
-        let status = 'pending';
-        try {
-            const res = await fetch(`${API_BASE}/orders`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify(orderData)
-            });
-            if (res.ok) {
-                const data = await res.json();
-                orderId = data.orderId || data.order?.id || orderId;
-            } else throw new Error('API failed');
-        } catch {
-            const orders = JSON.parse(localStorage.getItem('clothify_orders') || '[]');
-            orders.push({ id: orderId, ...orderData, status: 'pending', date: new Date().toISOString() });
-            localStorage.setItem('clothify_orders', JSON.stringify(orders));
-        }
+      let orderId = Date.now();
+      let status = 'pending';
+      try {
+          const res = await fetch(`${API_BASE}/orders`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+              body: JSON.stringify(orderData)
+          });
+          if (res.ok) {
+              const data = await res.json();
+              orderId = data.orderId || data.order?.id || orderId;
+          } else throw new Error('API failed');
+      } catch {
+          const orders = JSON.parse(localStorage.getItem('clothify_orders') || '[]');
+          orders.push({ id: orderId, ...orderData, status: 'pending', date: new Date().toISOString() });
+          localStorage.setItem('clothify_orders', JSON.stringify(orders));
+      }
 
-        // Deduct stock
-        cart.forEach(item => {
-            const p = allProducts.find(pr => pr.id === item.id);
-            if (p) p.stock = Math.max(0, p.stock - item.quantity);
-        });
+      cart.forEach(item => {
+          const p = allProducts.find(pr => pr.id === item.id);
+          if (p) p.stock = Math.max(0, p.stock - item.quantity);
+      });
 
-        // Attach order to user
-        if (currentUser) {
-            const userOrders = JSON.parse(localStorage.getItem('clothify_user_orders_' + currentUser.email) || '[]');
-            userOrders.push({ id: orderId, total, status, date: new Date().toISOString(), items: [...cart] });
-            localStorage.setItem('clothify_user_orders_' + currentUser.email, JSON.stringify(userOrders));
-        }
+      if (currentUser) {
+          const userOrders = JSON.parse(localStorage.getItem('clothify_user_orders_' + currentUser.email) || '[]');
+          userOrders.push({ id: orderId, total, status, date: new Date().toISOString(), items: [...cart] });
+          localStorage.setItem('clothify_user_orders_' + currentUser.email, JSON.stringify(userOrders));
+      }
 
-        showNotification(`Order placed! #${orderId}`, 'fa-circle-check', '#2ecc71');
-        cart = []; appliedCoupon_ = null; document.getElementById('coupon-input').value = '';
-        document.getElementById('coupon-message').textContent = '';
-        saveCart();
-        updateCartUI();
-        checkoutModal.style.display = 'none';
-        document.body.style.overflow = 'auto';
-        orderForm.reset();
-        submitBtn.disabled = false;
-        submitBtn.innerText = 'Place Order';
-        renderProducts(allProducts);
+      showNotification(`Order placed! #${orderId}`, 'fa-circle-check', '#2ecc71');
+      if (paymentMethod === 'Card') {
+        document.getElementById('card-number').value = '';
+        document.getElementById('card-expiry').value = '';
+        document.getElementById('card-cvv').value = '';
+      }
+      cart = []; appliedCoupon_ = null; document.getElementById('coupon-input').value = '';
+      document.getElementById('coupon-message').textContent = '';
+      saveCart();
+      updateCartUI();
+      checkoutModal.style.display = 'none';
+      document.body.style.overflow = 'auto';
+      orderForm.reset();
+      submitBtn.disabled = false;
+      submitBtn.innerText = 'Place Order';
+      renderProducts(allProducts);
     })();
 });
 
@@ -1671,8 +1727,9 @@ document.getElementById('card-number')?.addEventListener('input', (e) => {
     document.getElementById('card-brand-name').textContent = brand.name;
     document.getElementById('card-brand-icon').style.color = brand.color;
     const msg = document.getElementById('card-number-msg');
-    if (value.length > 0 && value.length < 16) { msg.textContent = 'Invalid card number'; msg.className = 'card-validation-msg invalid'; }
-    else if (value.length === 16) { msg.textContent = '✓ Valid'; msg.className = 'card-validation-msg valid'; }
+    if (value.length > 0 && value.length < 13) { msg.textContent = 'Too short'; msg.className = 'card-validation-msg invalid'; }
+    else if (value.length >= 13 && !luhnCheck(value)) { msg.textContent = 'Invalid card number (failed checksum)'; msg.className = 'card-validation-msg invalid'; }
+    else if (value.length >= 13 && luhnCheck(value)) { msg.textContent = '✓ Valid'; msg.className = 'card-validation-msg valid'; }
     else { msg.textContent = ''; msg.className = 'card-validation-msg'; }
 });
 document.getElementById('card-expiry')?.addEventListener('input', (e) => {
