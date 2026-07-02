@@ -4,6 +4,8 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
+const rateLimit = require('express-rate-limit');
 const nodemailer = require('nodemailer');
 
 const app = express();
@@ -198,6 +200,53 @@ async function initDb() {
   )`);
   try { db.run('ALTER TABLE users ADD COLUMN verified INTEGER DEFAULT 0'); } catch (e) {}
   try { db.run('ALTER TABLE orders ADD COLUMN payment_id INTEGER REFERENCES payments(id)'); } catch (e) {}
+  db.run(`CREATE TABLE IF NOT EXISTS user_addresses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    label TEXT DEFAULT 'Home',
+    address TEXT NOT NULL,
+    city TEXT DEFAULT '',
+    country TEXT DEFAULT '',
+    zip TEXT DEFAULT '',
+    phone TEXT DEFAULT '',
+    is_default INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  )`);
+  db.run(`CREATE TABLE IF NOT EXISTS user_cart (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
+    product_name TEXT NOT NULL,
+    price REAL NOT NULL,
+    image TEXT DEFAULT '',
+    quantity INTEGER DEFAULT 1,
+    size TEXT DEFAULT '',
+    added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, product_id, size),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  )`);
+  db.run(`CREATE TABLE IF NOT EXISTS user_wishlist (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
+    product_name TEXT NOT NULL,
+    price REAL NOT NULL,
+    image TEXT DEFAULT '',
+    added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, product_id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  )`);
+  db.run(`CREATE TABLE IF NOT EXISTS email_change_codes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    new_email TEXT NOT NULL,
+    code TEXT NOT NULL,
+    expires_at DATETIME NOT NULL,
+    used INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  )`);
   db.run(`CREATE TABLE IF NOT EXISTS page_views (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     page TEXT NOT NULL,
@@ -515,7 +564,7 @@ app.post('/api/register', async (req, res) => {
     return res.status(400).json({ error: 'Password must be at least 6 characters' });
   }
   try {
-    const hash = crypto.createHash('sha256').update(password).digest('hex');
+    const hash = await bcrypt.hash(password, 12);
     run('INSERT INTO users (name, email, password) VALUES (?, ?, ?)', [name, email, hash]);
     const code = String(Math.floor(100000 + Math.random() * 900000));
     const expires = new Date(Date.now() + 15 * 60 * 1000).toISOString();
@@ -534,7 +583,10 @@ app.post('/api/register', async (req, res) => {
       res.status(201).json({ message: 'Verification code sent to your email', email, verified: false });
     } else {
       run('UPDATE users SET verified = 1 WHERE email = ?', [email]);
-      res.status(201).json({ message: 'Registration successful! (Email not configured)', user: { name, email }, verified: true });
+      const user = queryOne('SELECT id, name, email, address, phone FROM users WHERE email = ?', [email]);
+      const token = crypto.randomBytes(32).toString('hex');
+      run('INSERT INTO auth_tokens (user_id, token) VALUES (?, ?)', [user.id, token]);
+      res.status(201).json({ message: 'Registration successful!', user, token, verified: true });
     }
   } catch (err) {
     if (err.message && err.message.includes('UNIQUE')) {
@@ -594,22 +646,43 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-app.post('/api/login', (req, res) => {
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: 'Too many login attempts. Try again in 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.post('/api/login', loginLimiter, async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password are required' });
   }
-  const hash = crypto.createHash('sha256').update(password).digest('hex');
-  const user = queryOne('SELECT id, name, email, address, phone, verified FROM users WHERE email = ? AND password = ?', [email, hash]);
+  const user = queryOne('SELECT id, name, email, password, address, phone, verified FROM users WHERE email = ?', [email]);
   if (!user) {
+    return res.status(401).json({ error: 'Invalid email or password' });
+  }
+  let passwordMatch = false;
+  if (user.password.startsWith('$2')) {
+    passwordMatch = await bcrypt.compare(password, user.password);
+  } else {
+    passwordMatch = crypto.createHash('sha256').update(password).digest('hex') === user.password;
+    if (passwordMatch) {
+      const newHash = await bcrypt.hash(password, 12);
+      run('UPDATE users SET password = ? WHERE id = ?', [newHash, user.id]);
+    }
+  }
+  if (!passwordMatch) {
     return res.status(401).json({ error: 'Invalid email or password' });
   }
   if (!user.verified) {
     return res.status(403).json({ error: 'Please verify your email first', email, verified: false });
   }
+  const { password: _, ...safeUser } = user;
   const token = crypto.randomBytes(32).toString('hex');
   run('INSERT INTO auth_tokens (user_id, token) VALUES (?, ?)', [user.id, token]);
-  res.json({ message: 'Login successful!', user, token });
+  res.json({ message: 'Login successful!', user: safeUser, token });
 });
 
 app.post('/api/auth/google', async (req, res) => {
@@ -656,6 +729,62 @@ app.put('/api/settings', requireAdmin, (req, res) => {
     res.json({ message: 'Settings updated successfully' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to update settings' });
+  }
+});
+
+app.post('/api/request-account-deletion', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email is required' });
+
+  try {
+    const user = queryOne('SELECT id, name, email FROM users WHERE email = ?', [email]);
+    if (!user) return res.status(404).json({ error: 'Email not found' });
+
+    run('UPDATE verification_codes SET used = 1 WHERE email = ?', [email]);
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    const expires = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+    run('INSERT INTO verification_codes (email, code, expires_at) VALUES (?, ?, ?)', [email, code, expires]);
+
+    const sent = await sendEmail({
+      to: email,
+      subject: 'Account Deletion Code - Clothify',
+      html: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
+        <h2 style="color:#1a1a1a;">Account Deletion Request</h2>
+        <p style="color:#555;">Hi ${user.name},<br>You requested to delete your Clothify account. Use this code to confirm:</p>
+        <div style="font-size:32px;font-weight:700;letter-spacing:8px;text-align:center;padding:16px;background:#f5f5f5;border-radius:8px;margin:16px 0;color:#e74c3c;">${code}</div>
+        <p style="color:#888;font-size:13px;">This code expires in 15 minutes.</p>
+        <p style="color:#e74c3c;font-size:13px;">If you didn't request this, please ignore this email.</p>
+      </div>`
+    });
+
+    if (sent) {
+      res.json({ message: 'Deletion code sent to your email' });
+    } else {
+      res.status(500).json({ error: 'Failed to send email. Check SMTP settings.' });
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to process request' });
+  }
+});
+
+app.post('/api/confirm-account-deletion', (req, res) => {
+  const { email, code } = req.body;
+  if (!email || !code) return res.status(400).json({ error: 'Email and code are required' });
+
+  try {
+    const user = queryOne('SELECT id, name, email FROM users WHERE email = ?', [email]);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const row = queryOne("SELECT * FROM verification_codes WHERE email = ? AND code = ? AND used = 0 AND expires_at > datetime('now')", [email, code]);
+    if (!row) return res.status(400).json({ error: 'Invalid or expired code' });
+
+    run('UPDATE verification_codes SET used = 1 WHERE id = ?', [row.id]);
+    run('DELETE FROM auth_tokens WHERE user_id = ?', [user.id]);
+    run('DELETE FROM users WHERE id = ?', [user.id]);
+
+    res.json({ message: 'Account deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete account' });
   }
 });
 
@@ -880,6 +1009,194 @@ app.post('/api/page-view', (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Failed to record page view' });
   }
+});
+
+// ─── User Profile ───────────────────────────────────────────────
+
+app.get('/api/user/profile', requireAdmin, (req, res) => {
+  const user = queryOne('SELECT id, name, email, address, phone, verified, created_at FROM users WHERE id = ?', [req.userId]);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  const { password, ...safeUser } = user;
+  res.json({ user: safeUser });
+});
+
+app.put('/api/user/profile', requireAdmin, (req, res) => {
+  const { name, address, phone } = req.body;
+  if (name !== undefined && (typeof name !== 'string' || name.trim().length === 0)) {
+    return res.status(400).json({ error: 'Name cannot be empty' });
+  }
+  const updates = [];
+  const params = [];
+  if (name !== undefined) { updates.push('name = ?'); params.push(name.trim()); }
+  if (address !== undefined) { updates.push('address = ?'); params.push(address.trim()); }
+  if (phone !== undefined) { updates.push('phone = ?'); params.push(phone.trim()); }
+  if (updates.length === 0) return res.status(400).json({ error: 'Nothing to update' });
+  params.push(req.userId);
+  run(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, params);
+  const user = queryOne('SELECT id, name, email, address, phone, verified, created_at FROM users WHERE id = ?', [req.userId]);
+  const { password, ...safeUser } = user;
+  res.json({ message: 'Profile updated', user: safeUser });
+});
+
+// ─── Password Change ────────────────────────────────────────────
+
+app.put('/api/user/password', requireAdmin, async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ error: 'Current password and new password are required' });
+  }
+  if (newPassword.length < 6) {
+    return res.status(400).json({ error: 'New password must be at least 6 characters' });
+  }
+  const user = queryOne('SELECT * FROM users WHERE id = ?', [req.userId]);
+  let match = false;
+  if (user.password.startsWith('$2')) {
+    match = await bcrypt.compare(currentPassword, user.password);
+  } else {
+    match = crypto.createHash('sha256').update(currentPassword).digest('hex') === user.password;
+  }
+  if (!match) return res.status(401).json({ error: 'Current password is incorrect' });
+  const newHash = await bcrypt.hash(newPassword, 12);
+  run('UPDATE users SET password = ? WHERE id = ?', [newHash, req.userId]);
+  res.json({ message: 'Password changed successfully' });
+});
+
+// ─── Email Change ────────────────────────────────────────────────
+
+app.post('/api/user/email', requireAdmin, async (req, res) => {
+  const { newEmail, password } = req.body;
+  if (!newEmail || !password) return res.status(400).json({ error: 'New email and password are required' });
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(newEmail)) return res.status(400).json({ error: 'Invalid email address' });
+  const existing = queryOne('SELECT id FROM users WHERE email = ?', [newEmail]);
+  if (existing) return res.status(409).json({ error: 'Email already in use' });
+  const user = queryOne('SELECT * FROM users WHERE id = ?', [req.userId]);
+  let match = false;
+  if (user.password.startsWith('$2')) {
+    match = await bcrypt.compare(password, user.password);
+  } else {
+    match = crypto.createHash('sha256').update(password).digest('hex') === user.password;
+  }
+  if (!match) return res.status(401).json({ error: 'Password is incorrect' });
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  const expires = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+  run('UPDATE email_change_codes SET used = 1 WHERE user_id = ?', [req.userId]);
+  run('INSERT INTO email_change_codes (user_id, new_email, code, expires_at) VALUES (?, ?, ?, ?)',
+    [req.userId, newEmail, code, expires]);
+  const sent = await sendEmail({
+    to: newEmail,
+    subject: 'Verify your new email - Clothify',
+    html: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
+      <h2 style="color:#1a1a1a;">Email Change Request</h2>
+      <p style="color:#555;">Your verification code for ${newEmail} is:</p>
+      <div style="font-size:32px;font-weight:700;letter-spacing:8px;text-align:center;padding:16px;background:#f5f5f5;border-radius:8px;margin:16px 0;color:#e67e22;">${code}</div>
+      <p style="color:#888;font-size:13px;">This code expires in 15 minutes.</p>
+    </div>`
+  });
+  if (sent) {
+    res.json({ message: 'Verification code sent to new email', email: newEmail });
+  } else {
+    res.status(500).json({ error: 'Failed to send email. SMTP not configured.' });
+  }
+});
+
+app.post('/api/user/email/verify', requireAdmin, (req, res) => {
+  const { code } = req.body;
+  if (!code) return res.status(400).json({ error: 'Verification code is required' });
+  const row = queryOne("SELECT * FROM email_change_codes WHERE user_id = ? AND code = ? AND used = 0 AND expires_at > datetime('now')",
+    [req.userId, code]);
+  if (!row) return res.status(400).json({ error: 'Invalid or expired code' });
+  run('UPDATE email_change_codes SET used = 1 WHERE id = ?', [row.id]);
+  run('UPDATE users SET email = ? WHERE id = ?', [row.new_email, req.userId]);
+  const user = queryOne('SELECT id, name, email, address, phone, verified, created_at FROM users WHERE id = ?', [req.userId]);
+  res.json({ message: 'Email updated successfully', user });
+});
+
+// ─── User Cart (Server-Sync) ─────────────────────────────────────
+
+app.get('/api/user/cart', requireAdmin, (req, res) => {
+  const items = queryAll('SELECT * FROM user_cart WHERE user_id = ? ORDER BY added_at DESC', [req.userId]);
+  res.json(items);
+});
+
+app.put('/api/user/cart', requireAdmin, (req, res) => {
+  const { items } = req.body;
+  if (!Array.isArray(items)) return res.status(400).json({ error: 'Items must be an array' });
+  run('DELETE FROM user_cart WHERE user_id = ?', [req.userId]);
+  for (const item of items) {
+    run('INSERT OR REPLACE INTO user_cart (user_id, product_id, product_name, price, image, quantity, size) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [req.userId, item.product_id || item.id, item.product_name || item.name, item.price, item.image || '', item.quantity || 1, item.size || '']);
+  }
+  const saved = queryAll('SELECT * FROM user_cart WHERE user_id = ? ORDER BY added_at DESC', [req.userId]);
+  res.json({ message: 'Cart saved', items: saved });
+});
+
+// ─── User Wishlist (Server-Sync) ─────────────────────────────────
+
+app.get('/api/user/wishlist', requireAdmin, (req, res) => {
+  const items = queryAll('SELECT * FROM user_wishlist WHERE user_id = ? ORDER BY added_at DESC', [req.userId]);
+  res.json(items);
+});
+
+app.put('/api/user/wishlist', requireAdmin, (req, res) => {
+  const { items } = req.body;
+  if (!Array.isArray(items)) return res.status(400).json({ error: 'Items must be an array' });
+  run('DELETE FROM user_wishlist WHERE user_id = ?', [req.userId]);
+  for (const item of items) {
+    run('INSERT OR REPLACE INTO user_wishlist (user_id, product_id, product_name, price, image) VALUES (?, ?, ?, ?, ?)',
+      [req.userId, item.product_id || item.id, item.product_name || item.name, item.price, item.image || '']);
+  }
+  const saved = queryAll('SELECT * FROM user_wishlist WHERE user_id = ? ORDER BY added_at DESC', [req.userId]);
+  res.json({ message: 'Wishlist saved', items: saved });
+});
+
+// ─── User Orders ─────────────────────────────────────────────────
+
+app.get('/api/user/orders', requireAdmin, (req, res) => {
+  const user = queryOne('SELECT email FROM users WHERE id = ?', [req.userId]);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  const orders = queryAll('SELECT * FROM orders WHERE customer_email = ? ORDER BY created_at DESC', [user.email]);
+  for (const order of orders) {
+    order.items = queryAll('SELECT * FROM order_items WHERE order_id = ?', [order.id]);
+    order.tracking = queryAll('SELECT * FROM order_tracking WHERE order_id = ? ORDER BY created_at ASC', [order.id]);
+  }
+  res.json(orders);
+});
+
+// ─── User Addresses ──────────────────────────────────────────────
+
+app.get('/api/user/addresses', requireAdmin, (req, res) => {
+  const addresses = queryAll('SELECT * FROM user_addresses WHERE user_id = ? ORDER BY is_default DESC, created_at DESC', [req.userId]);
+  res.json(addresses);
+});
+
+app.post('/api/user/addresses', requireAdmin, (req, res) => {
+  const { label, address, city, country, zip, phone, is_default } = req.body;
+  if (!address) return res.status(400).json({ error: 'Address is required' });
+  if (is_default) {
+    run('UPDATE user_addresses SET is_default = 0 WHERE user_id = ?', [req.userId]);
+  }
+  const id = insertAndGetId(
+    'INSERT INTO user_addresses (user_id, label, address, city, country, zip, phone, is_default) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    [req.userId, label || 'Home', address, city || '', country || '', zip || '', phone || '', is_default ? 1 : 0]
+  );
+  const saved = queryOne('SELECT * FROM user_addresses WHERE id = ?', [id]);
+  res.status(201).json({ message: 'Address added', address: saved });
+});
+
+app.delete('/api/user/addresses/:id', requireAdmin, (req, res) => {
+  const addr = queryOne('SELECT * FROM user_addresses WHERE id = ? AND user_id = ?', [req.params.id, req.userId]);
+  if (!addr) return res.status(404).json({ error: 'Address not found' });
+  run('DELETE FROM user_addresses WHERE id = ?', [req.params.id]);
+  res.json({ message: 'Address deleted' });
+});
+
+app.put('/api/user/addresses/:id/default', requireAdmin, (req, res) => {
+  const addr = queryOne('SELECT * FROM user_addresses WHERE id = ? AND user_id = ?', [req.params.id, req.userId]);
+  if (!addr) return res.status(404).json({ error: 'Address not found' });
+  run('UPDATE user_addresses SET is_default = 0 WHERE user_id = ?', [req.userId]);
+  run('UPDATE user_addresses SET is_default = 1 WHERE id = ?', [req.params.id]);
+  res.json({ message: 'Default address updated' });
 });
 
 // ─── Auth ───────────────────────────────────────────────────────

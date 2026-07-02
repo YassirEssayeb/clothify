@@ -42,6 +42,7 @@
                 <li><a href="#collection" data-i18n="nav_collection">Collection</a></li>
                 <li><a href="#about" data-i18n="nav_about">About</a></li>
                 <li><a href="#contact" data-i18n="nav_contact">Contact</a></li>
+                <li><a href="register.html">Register</a></li>
             </ul>
             <div class="nav-icons">
                 <div class="lang-switcher">
@@ -79,6 +80,7 @@
                 <li><a href="#collection" data-i18n="nav_collection">Collection</a></li>
                 <li><a href="#about" data-i18n="nav_about">About</a></li>
                 <li><a href="#contact" data-i18n="nav_contact">Contact</a></li>
+                <li><a href="register.html">Register</a></li>
                 <li><a href="#" id="mobile-feedback-btn" data-i18n="mobile_feedback">Share Opinion</a></li>
                 <li><a href="#" id="mobile-account-btn"><i class="fa-regular fa-user"></i> My Account</a></li>
             </ul>
@@ -606,6 +608,15 @@
                         <button class="account-nav-item" data-tab="details">
                             <i class="fa-solid fa-user-gear"></i> Account Details
                         </button>
+                        <button class="account-nav-item" data-tab="password">
+                            <i class="fa-solid fa-lock"></i> Password
+                        </button>
+                        <button class="account-nav-item" data-tab="email">
+                            <i class="fa-solid fa-envelope"></i> Email
+                        </button>
+                        <button class="account-nav-item" data-tab="addresses">
+                            <i class="fa-solid fa-location-dot"></i> Addresses
+                        </button>
                         <button class="account-nav-item" data-tab="wishlist-account">
                             <i class="fa-solid fa-heart"></i> Wishlist
                         </button>
@@ -628,9 +639,121 @@
                             </div>
                             <div class="form-group">
                                 <label for="account-email-input">Email Address</label>
-                                <input type="email" id="account-email-input" placeholder="Enter your email">
+                                <input type="email" id="account-email-input" placeholder="Enter your email" readonly style="background:#f5f5f5;cursor:not-allowed;">
+                            </div>
+                            <div class="form-group">
+                                <label for="account-phone">Phone Number</label>
+                                <input type="tel" id="account-phone" placeholder="+1 (555) 123-4567">
+                            </div>
+                            <div class="form-group">
+                                <label for="account-address">Shipping Address</label>
+                                <textarea id="account-address" placeholder="Street, City, Country" rows="2"></textarea>
                             </div>
                             <button type="submit" class="btn account-save-btn">Save Changes</button>
+                        </form>
+                        <div class="account-delete-section">
+                            <div class="delete-header">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                                <span>Danger Zone</span>
+                            </div>
+                            <p>Once you delete your account, there is no going back. A verification code will be sent to your email.</p>
+                            <div id="delete-account-step1">
+                                <button class="btn btn-delete" onclick="requestAccountDeletion()">Delete My Account</button>
+                            </div>
+                            <div id="delete-account-step2" class="delete-confirm" style="display:none;">
+                                <p><i class="fa-solid fa-envelope"></i> Enter the 6-digit code sent to your email</p>
+                                <div class="delete-code-row">
+                                    <input type="text" id="deletion-code" placeholder="000000" maxlength="6" autocomplete="off">
+                                    <button class="btn btn-delete" onclick="confirmAccountDeletion()">Confirm Deletion</button>
+                                </div>
+                                <span class="delete-hint">Code expires in 15 minutes</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="account-pane" id="account-password">
+                        <h2 class="pane-title">Change Password</h2>
+                        <form id="password-change-form" class="account-form">
+                            <div class="form-group">
+                                <label for="account-current-password">Current Password</label>
+                                <input type="password" id="account-current-password" placeholder="Enter current password" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="account-new-password">New Password</label>
+                                <input type="password" id="account-new-password" placeholder="Min 6 characters" required minlength="6">
+                            </div>
+                            <div class="form-group">
+                                <label for="account-confirm-password">Confirm New Password</label>
+                                <input type="password" id="account-confirm-password" placeholder="Repeat new password" required>
+                            </div>
+                            <span class="register-error" id="passwordChangeError"></span>
+                            <button type="submit" class="btn account-save-btn">Update Password</button>
+                        </form>
+                    </div>
+                    <div class="account-pane" id="account-email">
+                        <h2 class="pane-title">Change Email Address</h2>
+                        <p style="font-size:13px;color:#888;margin:0 0 16px;">A verification code will be sent to your new email.</p>
+                        <form id="email-change-form" class="account-form">
+                            <div class="form-group">
+                                <label for="account-new-email">New Email Address</label>
+                                <input type="email" id="account-new-email" placeholder="new@example.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="account-email-password">Confirm Password</label>
+                                <input type="password" id="account-email-password" placeholder="Enter your password" required>
+                            </div>
+                            <span class="register-error" id="emailChangeError"></span>
+                            <button type="submit" class="btn account-save-btn">Send Verification Code</button>
+                        </form>
+                        <div id="email-verify-step" style="display:none;margin-top:16px;">
+                            <p style="font-size:13px;color:#888;">Enter the 6-digit code sent to your new email.</p>
+                            <div style="display:flex;gap:8px;margin-top:8px;">
+                                <input type="text" id="email-verify-code" placeholder="000000" maxlength="6" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:6px;">
+                                <button class="btn" id="email-verify-btn" onclick="confirmEmailChange()">Verify</button>
+                            </div>
+                            <span class="register-error" id="emailVerifyError"></span>
+                        </div>
+                    </div>
+                    <div class="account-pane" id="account-addresses">
+                        <h2 class="pane-title">Saved Addresses</h2>
+                        <div id="addresses-list"></div>
+                        <hr style="margin:20px 0;border:none;border-top:1px solid #eee;">
+                        <h3 style="font-size:15px;margin:0 0 12px;">Add New Address</h3>
+                        <form id="address-form" class="account-form">
+                            <div class="form-group">
+                                <label for="addr-label">Label</label>
+                                <input type="text" id="addr-label" placeholder="Home, Work, etc." value="Home">
+                            </div>
+                            <div class="form-group">
+                                <label for="addr-address">Address</label>
+                                <input type="text" id="addr-address" placeholder="Street, number" required>
+                            </div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                                <div class="form-group">
+                                    <label for="addr-city">City</label>
+                                    <input type="text" id="addr-city" placeholder="City">
+                                </div>
+                                <div class="form-group">
+                                    <label for="addr-country">Country</label>
+                                    <input type="text" id="addr-country" placeholder="Country">
+                                </div>
+                            </div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                                <div class="form-group">
+                                    <label for="addr-zip">ZIP Code</label>
+                                    <input type="text" id="addr-zip" placeholder="ZIP">
+                                </div>
+                                <div class="form-group">
+                                    <label for="addr-phone">Phone</label>
+                                    <input type="tel" id="addr-phone" placeholder="Phone">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="remember-label">
+                                    <input type="checkbox" id="addr-default" checked> <span>Set as default address</span>
+                                </label>
+                            </div>
+                            <span class="register-error" id="addressError"></span>
+                            <button type="submit" class="btn account-save-btn">Add Address</button>
                         </form>
                     </div>
                     <div class="account-pane" id="account-wishlist-pane">

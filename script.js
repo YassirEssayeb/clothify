@@ -413,8 +413,14 @@ const updateQuantity = (id, delta) => {
         else { saveCart(); updateCartUI(); }
     }
 };
-const saveCart = () => localStorage.setItem('clothify_cart', JSON.stringify(cart));
-const saveWishlist = () => localStorage.setItem('clothify_wishlist', JSON.stringify(wishlist));
+const saveCart = () => {
+    localStorage.setItem('clothify_cart', JSON.stringify(cart));
+    syncCartToServer();
+};
+const saveWishlist = () => {
+    localStorage.setItem('clothify_wishlist', JSON.stringify(wishlist));
+    syncWishlistToServer();
+};
 const isInWishlist = (id) => wishlist.some(p => p.id === id);
 
 const toggleWishlist = (product) => {
@@ -745,7 +751,7 @@ const openProductModal = (product) => {
 
     // Lightbox click on main image
     const imgs = product.images && product.images.length > 0 ? product.images : [product.image, product.image, product.image, product.image];
-    modalImg.style.cursor = 'zoom-in';
+    modalImg.style.cursor = 'pointer';
     modalImg.onclick = () => openLightbox(imgs, 0);
 
     // Color Variants
@@ -1373,7 +1379,7 @@ const getInitials = (name) => {
     return name ? name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) : 'U';
 };
 
-const openAccountDashboard = () => {
+const openAccountDashboard = async () => {
     if (!currentUser) {
         openAuthModal();
         switchAuthTab('login');
@@ -1385,27 +1391,66 @@ const openAccountDashboard = () => {
     document.getElementById('account-email').textContent = currentUser.email;
     document.getElementById('account-name').value = currentUser.name || '';
     document.getElementById('account-email-input').value = currentUser.email || '';
+    document.getElementById('account-phone').value = currentUser.phone || '';
+    document.getElementById('account-address').value = currentUser.address || '';
 
-    // Orders
+    const token = localStorage.getItem('clothify_token');
+    if (token) {
+        try {
+            const res = await fetch(`${API_BASE}/user/profile`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.user) {
+                    currentUser = data.user;
+                    localStorage.setItem('clothify_user', JSON.stringify(currentUser));
+                    if (avatarEl) avatarEl.textContent = getInitials(currentUser.name);
+                    document.getElementById('account-welcome').textContent = currentUser.name;
+                    document.getElementById('account-email').textContent = currentUser.email;
+                    document.getElementById('account-name').value = currentUser.name || '';
+                    document.getElementById('account-email-input').value = currentUser.email || '';
+                    document.getElementById('account-phone').value = currentUser.phone || '';
+                    document.getElementById('account-address').value = currentUser.address || '';
+                }
+            }
+        } catch {}
+    }
+
+    // Orders (from server)
     const ordersList = document.getElementById('account-orders-list');
-    const userOrders = JSON.parse(localStorage.getItem('clothify_user_orders_' + currentUser.email) || '[]');
-    if (!userOrders.length) {
-        ordersList.innerHTML = '<p class="empty-state">No orders yet.</p>';
+    ordersList.innerHTML = '<p class="empty-state">Loading orders...</p>';
+    if (token) {
+        try {
+            const res = await fetch(`${API_BASE}/user/orders`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (res.ok) {
+                const serverOrders = await res.json();
+                if (!serverOrders.length) {
+                    ordersList.innerHTML = '<p class="empty-state">No orders yet.</p>';
+                } else {
+                    ordersList.innerHTML = '';
+                    serverOrders.forEach(o => {
+                        const card = document.createElement('div');
+                        card.className = 'order-history-card';
+                        const statusClass = (o.status || 'pending').toLowerCase().replace(/\s+/g, '_');
+                        card.innerHTML = `
+                            <div class="order-header">
+                                <span class="order-id">#${o.id}</span>
+                                <span class="order-status ${statusClass}">${(o.status || 'Pending').replace('_',' ')}</span>
+                            </div>
+                            <div class="order-meta">${new Date(o.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })} &middot; ${o.items ? o.items.length : 0} item(s) &middot; ${formatPrice(o.total_amount || 0)}</div>
+                        `;
+                        ordersList.appendChild(card);
+                    });
+                }
+            } else {
+                ordersList.innerHTML = '<p class="empty-state">Could not load orders.</p>';
+            }
+        } catch {
+            ordersList.innerHTML = '<p class="empty-state">Could not load orders.</p>';
+        }
     } else {
-        ordersList.innerHTML = '';
-        userOrders.slice().reverse().forEach(o => {
-            const card = document.createElement('div');
-            card.className = 'order-history-card';
-            const statusClass = (o.status || 'pending').toLowerCase().replace(/\s+/g, '_');
-            card.innerHTML = `
-                <div class="order-header">
-                    <span class="order-id">#${o.id}</span>
-                    <span class="order-status ${statusClass}">${(o.status || 'Pending').replace('_',' ')}</span>
-                </div>
-                <div class="order-meta">${new Date(o.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })} &middot; ${o.items ? o.items.length : 0} item(s) &middot; ${formatPrice(o.total || 0)}</div>
-            `;
-            ordersList.appendChild(card);
-        });
+        ordersList.innerHTML = '<p class="empty-state">No orders yet.</p>';
     }
 
     // Wishlist
@@ -1437,6 +1482,353 @@ document.querySelector('.close-account')?.addEventListener('click', () => {
     document.getElementById('account-modal').style.display = 'none';
     document.body.style.overflow = 'auto';
 });
+document.getElementById('account-details-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('account-name').value.trim();
+    const phone = document.getElementById('account-phone').value.trim();
+    const address = document.getElementById('account-address').value.trim();
+    const token = localStorage.getItem('clothify_token');
+    if (!token) { showNotification('Please sign in again', 'fa-exclamation-circle', '#e74c3c'); return; }
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true; btn.textContent = 'Saving...';
+    try {
+        const res = await fetch(`${API_BASE}/user/profile`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ name, phone, address })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            currentUser = data.user;
+            localStorage.setItem('clothify_user', JSON.stringify(currentUser));
+            document.getElementById('account-welcome').textContent = currentUser.name;
+            document.getElementById('account-email').textContent = currentUser.email;
+            showNotification('Profile updated!', 'fa-circle-check', '#2ecc71');
+        } else {
+            showNotification(data.error || 'Failed to update', 'fa-exclamation-circle', '#e74c3c');
+        }
+    } catch {
+        showNotification('Server unreachable', 'fa-exclamation-circle', '#e74c3c');
+    }
+    btn.disabled = false; btn.textContent = 'Save Changes';
+});
+
+// ─── Cart & Wishlist Server Sync ─────────────────────────────────
+
+async function syncCartToServer() {
+    const token = localStorage.getItem('clothify_token');
+    if (!token || !currentUser) return;
+    try {
+        await fetch(`${API_BASE}/user/cart`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ items: cart.map(i => ({ id: i.id, name: i.name, price: i.price, image: i.image, quantity: i.quantity, size: i.size || '' })) })
+        });
+    } catch {}
+}
+
+async function syncWishlistToServer() {
+    const token = localStorage.getItem('clothify_token');
+    if (!token || !currentUser) return;
+    try {
+        await fetch(`${API_BASE}/user/wishlist`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ items: wishlist.map(i => ({ id: i.id, name: i.name, price: i.price, image: i.image })) })
+        });
+    } catch {}
+}
+
+async function syncCartFromServer() {
+    const token = localStorage.getItem('clothify_token');
+    if (!token) return;
+    try {
+        const res = await fetch(`${API_BASE}/user/cart`, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (res.ok) {
+            const items = await res.json();
+            if (items.length > 0) {
+                cart = items.map(i => {
+                    const p = allProducts.find(pr => pr.id === i.product_id) || { id: i.product_id, name: i.product_name, price: i.price, image: i.image, stock: 99 };
+                    return { ...p, quantity: i.quantity, size: i.size };
+                });
+                localStorage.setItem('clothify_cart', JSON.stringify(cart));
+                updateCartCount();
+            }
+        }
+    } catch {}
+}
+
+async function syncWishlistFromServer() {
+    const token = localStorage.getItem('clothify_token');
+    if (!token) return;
+    try {
+        const res = await fetch(`${API_BASE}/user/wishlist`, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (res.ok) {
+            const items = await res.json();
+            if (items.length > 0) {
+                wishlist = items.map(i => allProducts.find(p => p.id === i.product_id) || { id: i.product_id, name: i.product_name, price: i.price, image: i.image });
+                localStorage.setItem('clothify_wishlist', JSON.stringify(wishlist));
+            }
+        }
+    } catch {}
+}
+
+async function syncDataOnLogin() {
+    const localCart = cart.length > 0;
+    const localWishlist = wishlist.length > 0;
+    await syncCartFromServer();
+    await syncWishlistFromServer();
+    if (localCart) await syncCartToServer();
+    if (localWishlist) await syncWishlistToServer();
+}
+
+// ─── Password Change ────────────────────────────────────────────
+
+document.getElementById('password-change-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const currentPassword = document.getElementById('account-current-password').value;
+    const newPassword = document.getElementById('account-new-password').value;
+    const confirmPassword = document.getElementById('account-confirm-password').value;
+    const errorEl = document.getElementById('passwordChangeError');
+    errorEl.style.display = 'none';
+    if (newPassword !== confirmPassword) {
+        errorEl.textContent = 'Passwords do not match';
+        errorEl.style.display = 'block';
+        return;
+    }
+    if (newPassword.length < 6) {
+        errorEl.textContent = 'Password must be at least 6 characters';
+        errorEl.style.display = 'block';
+        return;
+    }
+    const token = localStorage.getItem('clothify_token');
+    if (!token) { showNotification('Please sign in again', 'fa-exclamation-circle', '#e74c3c'); return; }
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true; btn.textContent = 'Updating...';
+    try {
+        const res = await fetch(`${API_BASE}/user/password`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ currentPassword, newPassword })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            showNotification('Password changed!', 'fa-circle-check', '#2ecc71');
+            e.target.reset();
+        } else {
+            errorEl.textContent = data.error || 'Failed to change password';
+            errorEl.style.display = 'block';
+        }
+    } catch {
+        errorEl.textContent = 'Server unreachable';
+        errorEl.style.display = 'block';
+    }
+    btn.disabled = false; btn.textContent = 'Update Password';
+});
+
+// ─── Email Change ────────────────────────────────────────────────
+
+document.getElementById('email-change-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const newEmail = document.getElementById('account-new-email').value.trim();
+    const password = document.getElementById('account-email-password').value;
+    const errorEl = document.getElementById('emailChangeError');
+    errorEl.style.display = 'none';
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newEmail)) {
+        errorEl.textContent = 'Please enter a valid email address';
+        errorEl.style.display = 'block';
+        return;
+    }
+    const token = localStorage.getItem('clothify_token');
+    if (!token) { showNotification('Please sign in again', 'fa-exclamation-circle', '#e74c3c'); return; }
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true; btn.textContent = 'Sending...';
+    try {
+        const res = await fetch(`${API_BASE}/user/email`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ newEmail, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            document.getElementById('email-verify-step').style.display = 'block';
+            document.getElementById('email-verify-step').dataset.email = newEmail;
+            showNotification('Verification code sent!', 'fa-envelope', '#e67e22');
+        } else {
+            errorEl.textContent = data.error || 'Failed to send code';
+            errorEl.style.display = 'block';
+        }
+    } catch {
+        errorEl.textContent = 'Server unreachable';
+        errorEl.style.display = 'block';
+    }
+    btn.disabled = false; btn.textContent = 'Send Verification Code';
+});
+
+window.confirmEmailChange = async function() {
+    const code = document.getElementById('email-verify-code').value.trim();
+    const errorEl = document.getElementById('emailVerifyError');
+    errorEl.style.display = 'none';
+    if (!/^\d{6}$/.test(code)) {
+        errorEl.textContent = 'Please enter a valid 6-digit code';
+        errorEl.style.display = 'block';
+        return;
+    }
+    const token = localStorage.getItem('clothify_token');
+    if (!token) { showNotification('Please sign in again', 'fa-exclamation-circle', '#e74c3c'); return; }
+    const btn = document.getElementById('email-verify-btn');
+    btn.disabled = true; btn.textContent = 'Verifying...';
+    try {
+        const res = await fetch(`${API_BASE}/user/email/verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ code })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            currentUser = data.user;
+            localStorage.setItem('clothify_user', JSON.stringify(currentUser));
+            document.getElementById('account-email').textContent = currentUser.email;
+            document.getElementById('account-email-input').value = currentUser.email || '';
+            document.getElementById('email-verify-step').style.display = 'none';
+            document.getElementById('email-change-form').reset();
+            showNotification('Email updated!', 'fa-circle-check', '#2ecc71');
+        } else {
+            errorEl.textContent = data.error || 'Invalid code';
+            errorEl.style.display = 'block';
+        }
+    } catch {
+        errorEl.textContent = 'Verification failed';
+        errorEl.style.display = 'block';
+    }
+    btn.disabled = false; btn.textContent = 'Verify';
+};
+
+// ─── Address Management ─────────────────────────────────────────
+
+async function loadAddresses() {
+    const token = localStorage.getItem('clothify_token');
+    const list = document.getElementById('addresses-list');
+    if (!token) { list.innerHTML = '<p class="empty-state">Sign in to manage addresses.</p>'; return; }
+    list.innerHTML = '<p class="empty-state">Loading...</p>';
+    try {
+        const res = await fetch(`${API_BASE}/user/addresses`, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (res.ok) {
+            const addresses = await res.json();
+            if (!addresses.length) {
+                list.innerHTML = '<p class="empty-state">No saved addresses.</p>';
+            } else {
+                list.innerHTML = '';
+                addresses.forEach(addr => {
+                    const card = document.createElement('div');
+                    card.className = 'address-card';
+                    card.style.cssText = 'border:1px solid #eee;border-radius:8px;padding:12px;margin-bottom:8px;';
+                    const isDefault = addr.is_default ? '<span style="background:#2ecc71;color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;margin-left:8px;">Default</span>' : '';
+                    card.innerHTML = `
+                        <div style="display:flex;justify-content:space-between;align-items:start;">
+                            <div>
+                                <strong>${addr.label || 'Address'} ${isDefault}</strong>
+                                <p style="margin:4px 0;font-size:13px;color:#555;">${addr.address}${addr.city ? ', ' + addr.city : ''}${addr.country ? ', ' + addr.country : ''}</p>
+                                ${addr.phone ? `<p style="margin:0;font-size:12px;color:#888;">${addr.phone}</p>` : ''}
+                            </div>
+                            <div style="display:flex;gap:6px;">
+                                ${!addr.is_default ? `<button class="btn" style="padding:4px 10px;font-size:12px;" onclick="setDefaultAddress(${addr.id})">Set Default</button>` : ''}
+                                <button class="btn" style="padding:4px 10px;font-size:12px;background:#e74c3c;color:#fff;" onclick="deleteAddress(${addr.id})">Delete</button>
+                            </div>
+                        </div>
+                    `;
+                    list.appendChild(card);
+                });
+            }
+        } else {
+            list.innerHTML = '<p class="empty-state">Could not load addresses.</p>';
+        }
+    } catch {
+        list.innerHTML = '<p class="empty-state">Could not load addresses.</p>';
+    }
+}
+
+window.setDefaultAddress = async function(id) {
+    const token = localStorage.getItem('clothify_token');
+    if (!token) return;
+    try {
+        const res = await fetch(`${API_BASE}/user/addresses/${id}/default`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) { loadAddresses(); showNotification('Default address updated', 'fa-circle-check', '#2ecc71'); }
+    } catch {}
+};
+
+window.deleteAddress = async function(id) {
+    if (!confirm('Delete this address?')) return;
+    const token = localStorage.getItem('clothify_token');
+    if (!token) return;
+    try {
+        const res = await fetch(`${API_BASE}/user/addresses/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) { loadAddresses(); showNotification('Address deleted', 'fa-circle-check', '#2ecc71'); }
+    } catch {}
+};
+
+document.getElementById('address-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const address = document.getElementById('addr-address').value.trim();
+    const errorEl = document.getElementById('addressError');
+    errorEl.style.display = 'none';
+    if (!address) {
+        errorEl.textContent = 'Address is required';
+        errorEl.style.display = 'block';
+        return;
+    }
+    const token = localStorage.getItem('clothify_token');
+    if (!token) { showNotification('Please sign in again', 'fa-exclamation-circle', '#e74c3c'); return; }
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true; btn.textContent = 'Saving...';
+    try {
+        const res = await fetch(`${API_BASE}/user/addresses`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({
+                label: document.getElementById('addr-label').value || 'Home',
+                address,
+                city: document.getElementById('addr-city').value.trim(),
+                country: document.getElementById('addr-country').value.trim(),
+                zip: document.getElementById('addr-zip').value.trim(),
+                phone: document.getElementById('addr-phone').value.trim(),
+                is_default: document.getElementById('addr-default').checked
+            })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            loadAddresses();
+            e.target.reset();
+            document.getElementById('addr-label').value = 'Home';
+            document.getElementById('addr-default').checked = true;
+            showNotification('Address added!', 'fa-circle-check', '#2ecc71');
+        } else {
+            errorEl.textContent = data.error || 'Failed to add address';
+            errorEl.style.display = 'block';
+        }
+    } catch {
+        errorEl.textContent = 'Server unreachable';
+        errorEl.style.display = 'block';
+    }
+    btn.disabled = false; btn.textContent = 'Add Address';
+});
+
+// Tab switch to addresses pane loads addresses
+document.querySelectorAll('.account-nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+        setTimeout(() => {
+            if (item.dataset.tab === 'addresses') loadAddresses();
+        }, 50);
+    });
+});
+
 document.querySelectorAll('.account-nav-item').forEach(item => {
     item.addEventListener('click', () => {
         document.querySelectorAll('.account-nav-item').forEach(i => i.classList.remove('active'));
@@ -1445,15 +1837,74 @@ document.querySelectorAll('.account-nav-item').forEach(item => {
         document.getElementById('account-' + item.dataset.tab).classList.add('active');
     });
 });
-const logoutAccount = () => {
+const logoutAccount = async () => {
+    const token = localStorage.getItem('clothify_token');
+    if (token) {
+        try { await fetch(`${API_BASE}/logout`, { method:'POST', headers:{'Authorization':`Bearer ${token}`} }); } catch {}
+    }
     currentUser = null;
     localStorage.removeItem('clothify_user');
+    localStorage.removeItem('clothify_token');
     document.getElementById('account-modal').style.display = 'none';
     document.body.style.overflow = 'auto';
     showNotification('Logged out successfully');
 };
+async function requestAccountDeletion() {
+  if (!confirm('Are you sure you want to delete your account? A verification code will be sent to your email.')) return;
+  try {
+    const res = await fetch(`${API_BASE}/request-account-deletion`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: currentUser.email })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showNotification('Deletion code sent to your email!', 'fa-envelope', '#e67e22');
+      document.getElementById('delete-account-step1').style.display = 'none';
+      document.getElementById('delete-account-step2').style.display = 'block';
+    } else {
+      showNotification(data.error || 'Failed to send code', 'fa-exclamation-circle', '#e74c3c');
+    }
+  } catch {
+    showNotification('Failed to send code', 'fa-exclamation-circle', '#e74c3c');
+  }
+}
+
+async function confirmAccountDeletion() {
+  const code = document.getElementById('deletion-code').value.trim();
+  if (!code || code.length < 6) {
+    showNotification('Please enter the full 6-digit code', 'fa-exclamation-circle', '#e74c3c');
+    return;
+  }
+  if (!confirm('This action is permanent. Are you sure you want to delete your account?')) return;
+  try {
+    const res = await fetch(`${API_BASE}/confirm-account-deletion`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: currentUser.email, code })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showNotification('Account deleted successfully', 'fa-circle-check', '#e74c3c');
+      localStorage.removeItem('clothify_user');
+      currentUser = null;
+      document.getElementById('account-modal').style.display = 'none';
+      document.body.style.overflow = 'auto';
+      document.getElementById('delete-account-step2').style.display = 'none';
+      document.getElementById('delete-account-step1').style.display = '';
+      document.getElementById('deletion-code').value = '';
+    } else {
+      showNotification(data.error || 'Invalid code', 'fa-exclamation-circle', '#e74c3c');
+    }
+  } catch {
+    showNotification('Failed to delete account', 'fa-exclamation-circle', '#e74c3c');
+  }
+}
+
 window.openAccountDashboard = openAccountDashboard;
 window.logoutAccount = logoutAccount;
+window.requestAccountDeletion = requestAccountDeletion;
+window.confirmAccountDeletion = confirmAccountDeletion;
 
 // ---- AUTH MODAL ----
 const authModal = document.getElementById('auth-modal');
@@ -1542,6 +1993,8 @@ document.getElementById('register-form')?.addEventListener('submit', async (e) =
             } else {
                 currentUser = data.user || { name, email };
                 localStorage.setItem('clothify_user', JSON.stringify(currentUser));
+                if (data.token) localStorage.setItem('clothify_token', data.token);
+                syncDataOnLogin();
                 showNotification('Account created!', 'fa-circle-check', '#2ecc71');
                 document.getElementById('auth-modal').style.display = 'none';
                 document.body.style.overflow = 'auto';
@@ -1573,6 +2026,8 @@ document.getElementById('login-form')?.addEventListener('submit', async (e) => {
             const data = await res.json();
             currentUser = data.user || { email, name: email.split('@')[0] };
             localStorage.setItem('clothify_user', JSON.stringify(currentUser));
+            if (data.token) localStorage.setItem('clothify_token', data.token);
+            syncDataOnLogin();
             showNotification('Welcome back!', 'fa-circle-check', '#2ecc71');
             document.getElementById('auth-modal').style.display = 'none';
             document.body.style.overflow = 'auto';
@@ -1628,6 +2083,8 @@ document.getElementById('verify-form')?.addEventListener('submit', async (e) => 
             const data = await res.json();
             currentUser = data.user || { name, email };
             localStorage.setItem('clothify_user', JSON.stringify(currentUser));
+            if (data.token) localStorage.setItem('clothify_token', data.token);
+            syncDataOnLogin();
             showNotification('Email verified!', 'fa-circle-check', '#2ecc71');
             document.getElementById('auth-modal').style.display = 'none';
             document.body.style.overflow = 'auto';
