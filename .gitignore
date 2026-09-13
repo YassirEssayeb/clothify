@@ -1,13 +1,5 @@
 node_modules/
 backend/data.db
 backend/.env
-.vscode/
 .idea/
 *.log
-.playwright-mcp/
-frontend/
-laravel-api/
-unsplash/
-*.png
-*.txt
-Screenshot*

@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account | Clothify</title>
+    <meta name="description" content="Create your Clothify account and enjoy a personalised shopping experience.">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e67e22' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z'/><line x1='7' y1='7' x2='7.01' y2='7'/></svg>">
+</head>
+<body>
+    <div class="register-page">
+        <div class="register-container">
+            <div class="register-left">
+                <div class="register-brand">
+                    <a href="index.html" class="register-logo">Clothify</a>
+                    <p class="register-tagline">Elevating your daily style with premium quality apparel.</p>
+                </div>
+                <div class="register-testimonial">
+                    <div class="testimonial-stars">
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+                    <p class="testimonial-text">"Amazing quality and fast delivery. My new favorite clothing store!"</p>
+                    <p class="testimonial-author">— Sarah M.</p>
+                </div>
+            </div>
+            <div class="register-right">
+                <div class="register-form-wrapper" id="registerStep">
+                    <div class="register-header">
+                        <h1>Create Account</h1>
+                        <p>Join us today and start shopping.</p>
+                    </div>
+                    <form id="registerForm" novalidate>
+                        <div class="register-form-group">
+                            <label for="fullName">Full Name</label>
+                            <div class="register-input-wrap">
+                                <i class="fa-regular fa-user"></i>
+                                <input type="text" id="fullName" placeholder="John Doe" required autocomplete="name">
+                            </div>
+                            <span class="register-error" id="nameError"></span>
+                        </div>
+                        <div class="register-form-group">
+                            <label for="email">Email Address</label>
+                            <div class="register-input-wrap">
+                                <i class="fa-regular fa-envelope"></i>
+                                <input type="email" id="email" placeholder="john@example.com" required autocomplete="email">
+                            </div>
+                            <span class="register-error" id="emailError"></span>
+                        </div>
+                        <div class="register-form-group">
+                            <label for="password">Password</label>
+                            <div class="register-input-wrap">
+                                <i class="fa-solid fa-lock"></i>
+                                <input type="password" id="password" placeholder="Min 8 characters" required autocomplete="new-password">
+                                <button type="button" class="register-pw-toggle" onclick="togglePassword('password', this)">
+                                    <i class="fa-regular fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength" id="passwordStrength">
+                                <div class="strength-bar" id="strengthBar"></div>
+                            </div>
+                            <ul class="password-requirements" id="passwordReqs">
+                                <li id="reqLength"><i class="fa-regular fa-circle"></i> At least 8 characters</li>
+                                <li id="reqUpper"><i class="fa-regular fa-circle"></i> One uppercase letter</li>
+                                <li id="reqNumber"><i class="fa-regular fa-circle"></i> One number</li>
+                                <li id="reqSpecial"><i class="fa-regular fa-circle"></i> One special character</li>
+                            </ul>
+                            <span class="register-error" id="passwordError"></span>
+                        </div>
+                        <div class="register-form-group">
+                            <label for="confirmPassword">Confirm Password</label>
+                            <div class="register-input-wrap">
+                                <i class="fa-solid fa-lock"></i>
+                                <input type="password" id="confirmPassword" placeholder="Repeat your password" required autocomplete="new-password">
+                                <button type="button" class="register-pw-toggle" onclick="togglePassword('confirmPassword', this)">
+                                    <i class="fa-regular fa-eye"></i>
+                                </button>
+                            </div>
+                            <span class="register-error" id="confirmError"></span>
+                        </div>
+                        <button type="submit" class="register-btn" id="createAccountBtn">
+                            <i class="fa-regular fa-circle-check"></i>
+                            <span>Create Account</span>
+                        </button>
+                    </form>
+                    <p class="register-login-link">
+                        Already have an account? <a href="login.html">Sign In</a>
+                    </p>
+                </div>
+
+                <div class="register-form-wrapper verify-step" id="verifyStep">
+                    <div class="register-header">
+                        <div class="verify-icon">
+                            <i class="fa-regular fa-envelope"></i>
+                        </div>
+                        <h1>Verify Your Email</h1>
+                        <p id="verifyMessage">Verification code sent to your email</p>
+                    </div>
+                    <form id="verifyForm" novalidate>
+                        <div class="register-form-group">
+                            <label for="verifyCode">6-Digit Code</label>
+                            <div class="verify-input-group">
+                                <input type="text" id="verifyCode" maxlength="6" placeholder="000000" inputmode="numeric" autocomplete="off" required>
+                            </div>
+                            <span class="register-error" id="verifyError"></span>
+                        </div>
+                        <button type="submit" class="register-btn" id="verifyBtn">
+                            <i class="fa-regular fa-circle-check"></i>
+                            <span>Verify Email</span>
+                        </button>
+                    </form>
+                    <div class="resend-section">
+                        <button type="button" class="resend-btn" id="resendBtn" disabled onclick="resendCode()">
+                            Resend Code <span id="resendTimer">(60)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="register-form-wrapper success-step" id="successStep">
+                    <div class="register-header">
+                        <div class="success-icon">
+                            <i class="fa-solid fa-check"></i>
+                        </div>
+                        <h1>Email Verified!</h1>
+                        <p>Your account has been created successfully.</p>
+                    </div>
+                    <a href="index.html" class="register-btn" style="display:inline-flex;text-decoration:none;">
+                        <i class="fa-solid fa-arrow-right"></i>
+                        <span>Go to Homepage</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+const API_BASE = 'http://localhost:5000/api';
+let cooldownInterval = null;
+
+function togglePassword(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const isPassword = input.type === 'password';
+    input.type = isPassword ? 'text' : 'password';
+    btn.querySelector('i').className = isPassword ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
+}
+
+const passwordInput = document.getElementById('password');
+const strengthBar = document.getElementById('strengthBar');
+const reqLength = document.getElementById('reqLength');
+const reqUpper = document.getElementById('reqUpper');
+const reqNumber = document.getElementById('reqNumber');
+const reqSpecial = document.getElementById('reqSpecial');
+
+passwordInput.addEventListener('input', () => {
+    const val = passwordInput.value;
+    let score = 0;
+
+    if (val.length >= 8) { reqLength.querySelector('i').className = 'fa-solid fa-check'; reqLength.style.color = '#2ecc71'; score++; }
+    else { reqLength.querySelector('i').className = 'fa-regular fa-circle'; reqLength.style.color = ''; }
+
+    if (/[A-Z]/.test(val)) { reqUpper.querySelector('i').className = 'fa-solid fa-check'; reqUpper.style.color = '#2ecc71'; score++; }
+    else { reqUpper.querySelector('i').className = 'fa-regular fa-circle'; reqUpper.style.color = ''; }
+
+    if (/[0-9]/.test(val)) { reqNumber.querySelector('i').className = 'fa-solid fa-check'; reqNumber.style.color = '#2ecc71'; score++; }
+    else { reqNumber.querySelector('i').className = 'fa-regular fa-circle'; reqNumber.style.color = ''; }
+
+    if (/[^a-zA-Z0-9]/.test(val)) { reqSpecial.querySelector('i').className = 'fa-solid fa-check'; reqSpecial.style.color = '#2ecc71'; score++; }
+    else { reqSpecial.querySelector('i').className = 'fa-regular fa-circle'; reqSpecial.style.color = ''; }
+
+    const pct = (score / 4) * 100;
+    strengthBar.style.width = pct + '%';
+    if (pct <= 25) strengthBar.style.background = '#e74c3c';
+    else if (pct <= 50) strengthBar.style.background = '#e67e22';
+    else if (pct <= 75) strengthBar.style.background = '#f1c40f';
+    else strengthBar.style.background = '#2ecc71';
+});
+
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearErrors();
+
+    const name = document.getElementById('fullName').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const confirm = document.getElementById('confirmPassword').value;
+
+    let valid = true;
+
+    if (!name) {
+        showError('nameError', 'Full name is required');
+        valid = false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        showError('emailError', 'Please enter a valid email address');
+        valid = false;
+    }
+
+    if (password.length < 8) {
+        showError('passwordError', 'Password must be at least 8 characters');
+        valid = false;
+    } else if (!/[A-Z]/.test(password)) {
+        showError('passwordError', 'Password must contain an uppercase letter');
+        valid = false;
+    } else if (!/[0-9]/.test(password)) {
+        showError('passwordError', 'Password must contain a number');
+        valid = false;
+    } else if (!/[^a-zA-Z0-9]/.test(password)) {
+        showError('passwordError', 'Password must contain a special character');
+        valid = false;
+    }
+
+    if (password !== confirm) {
+        showError('confirmError', 'Passwords do not match');
+        valid = false;
+    }
+
+    if (!valid) return;
+
+    const btn = document.getElementById('createAccountBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Creating Account...</span>';
+
+    try {
+        const res = await fetch(`${API_BASE}/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, password })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            if (data.verified === false) {
+                document.getElementById('verifyMessage').textContent = 'Verification code sent to ' + email;
+                document.getElementById('registerStep').style.display = 'none';
+                document.getElementById('verifyStep').style.display = 'block';
+                document.getElementById('verifyForm').dataset.email = email;
+                startCooldown();
+            } else {
+                if (data.user) localStorage.setItem('clothify_user', JSON.stringify(data.user));
+                if (data.token) localStorage.setItem('clothify_token', data.token);
+                showNotification('Account created successfully!', 'success');
+                setTimeout(() => { window.location.href = 'index.html'; }, 1500);
+            }
+        } else {
+            showError('emailError', data.error || 'Registration failed');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-regular fa-circle-check"></i><span>Create Account</span>';
+        }
+    } catch {
+        showNotification('Server unreachable. Please try again later.', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-regular fa-circle-check"></i><span>Create Account</span>';
+    }
+});
+
+document.getElementById('verifyForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearErrors();
+
+    const code = document.getElementById('verifyCode').value.trim();
+    const email = document.getElementById('verifyForm').dataset.email;
+
+    if (!/^\d{6}$/.test(code)) {
+        showError('verifyError', 'Please enter a valid 6-digit code');
+        return;
+    }
+
+    const btn = document.getElementById('verifyBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Verifying...</span>';
+
+    try {
+        const res = await fetch(`${API_BASE}/verify-email`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, code })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            if (data.token) {
+                localStorage.setItem('clothify_user', JSON.stringify(data.user));
+                localStorage.setItem('clothify_token', data.token);
+            }
+            document.getElementById('verifyStep').style.display = 'none';
+            document.getElementById('successStep').style.display = 'block';
+            if (cooldownInterval) clearInterval(cooldownInterval);
+        } else {
+            showError('verifyError', data.error || 'Invalid or expired code');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-regular fa-circle-check"></i><span>Verify Email</span>';
+        }
+    } catch {
+        showError('verifyError', 'Verification failed. Please try again.');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-regular fa-circle-check"></i><span>Verify Email</span>';
+    }
+});
+
+async function resendCode() {
+    const email = document.getElementById('verifyForm').dataset.email;
+    if (!email) return;
+
+    const btn = document.getElementById('resendBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+
+    try {
+        const res = await fetch(`${API_BASE}/resend-code`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+
+        if (res.ok) {
+            showNotification('Verification code resent!', 'success');
+            startCooldown();
+        } else {
+            const data = await res.json();
+            showNotification(data.error || 'Failed to resend code', 'error');
+            btn.disabled = false;
+            btn.innerHTML = 'Resend Code';
+        }
+    } catch {
+        showNotification('Failed to resend code', 'error');
+        btn.disabled = false;
+        btn.innerHTML = 'Resend Code';
+    }
+}
+
+function startCooldown() {
+    if (cooldownInterval) clearInterval(cooldownInterval);
+
+    const btn = document.getElementById('resendBtn');
+    const timer = document.getElementById('resendTimer');
+    let seconds = 60;
+
+    btn.disabled = true;
+    timer.textContent = `(${seconds})`;
+
+    cooldownInterval = setInterval(() => {
+        seconds--;
+        timer.textContent = `(${seconds})`;
+        if (seconds <= 0) {
+            clearInterval(cooldownInterval);
+            cooldownInterval = null;
+            btn.disabled = false;
+            btn.innerHTML = 'Resend Code';
+        }
+    }, 1000);
+}
+
+function showError(id, message) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.textContent = message;
+        el.style.display = 'block';
+    }
+}
+
+function clearErrors() {
+    document.querySelectorAll('.register-error').forEach(el => {
+        el.textContent = '';
+        el.style.display = 'none';
+    });
+}
+
+function showNotification(message, type) {
+    const existing = document.querySelector('.register-notification');
+    if (existing) existing.remove();
+
+    const div = document.createElement('div');
+    div.className = `register-notification ${type}`;
+    div.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-exclamation-circle'}"></i> ${message}`;
+    document.body.appendChild(div);
+
+    setTimeout(() => { div.style.opacity = '0'; setTimeout(() => div.remove(), 300); }, 4000);
+}
+</script>
+</body>
+</html>
